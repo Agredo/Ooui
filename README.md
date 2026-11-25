@@ -7,6 +7,7 @@
 | [![NuGet Package](https://img.shields.io/nuget/v/Ooui.svg)](https://www.nuget.org/packages/Ooui) | [Ooui](https://www.nuget.org/packages/Ooui) | Core library with HTML elements and a server |
 | [![NuGet Package](https://img.shields.io/nuget/v/Ooui.AspNetCore.svg)](https://www.nuget.org/packages/Ooui.AspNetCore) | [Ooui.AspNetCore](https://www.nuget.org/packages/Ooui.AspNetCore) | Integration with ASP.NET Core |
 | [![NuGet Package](https://img.shields.io/nuget/v/Ooui.Forms.svg)](https://www.nuget.org/packages/Ooui.Forms) | [Ooui.Forms](https://www.nuget.org/packages/Ooui.Forms) | Xamarin.Forms backend using Ooui ([Status](Documentation/OouiFormsStatus.md)) |
+| `Ooui.Maui` (experimental, source only) | [Ooui.Maui](Ooui.Maui/Ooui.Maui.csproj) | Experimental .NET MAUI 11 browser backend |
 | [![NuGet Package](https://img.shields.io/nuget/v/Ooui.Wasm.svg)](https://www.nuget.org/packages/Ooui.Wasm) | [Ooui.Wasm](https://www.nuget.org/packages/Ooui.Wasm) | Package your app into a web assembly |
 
 Ooui (pronounced *weee!*) is a small cross-platform UI library for .NET that uses web technologies.
@@ -33,6 +34,41 @@ dotnet run --project Samples/Samples.csproj
 This will open the default starting page for the Samples. Now point your browser at [http://localhost:8080/shared-button](http://localhost:8080/shared-button)
 
 You should see a button that tracks the number of times it was clicked. The source code for that button is shown in the example below.
+
+
+## .NET MAUI 11 (experimental)
+
+The `Ooui.Maui` project hosts a MAUI view hierarchy on the server and renders it with Ooui elements. It uses native MAUI 11 handlers rather than the retired Compatibility renderers. Add project references to `Ooui` and `Ooui.Maui`, enable `UseMaui`, and target `net11.0`.
+
+```csharp
+using Microsoft.Maui.Controls.Hosting;
+using Microsoft.Maui.Hosting;
+using Ooui.Maui;
+
+var app = MauiApp.CreateBuilder()
+    .UseMauiApp<App>()
+    .UseOoui()
+    .Build();
+
+app.Publish();
+Thread.Sleep(Timeout.Infinite);
+```
+
+Run the included counter sample and open <http://localhost:8080/>:
+
+```bash
+dotnet run --project PlatformSamples/ConsoleNet6/ConsoleNet6.csproj
+```
+
+Each WebSocket connection creates its own window and view hierarchy. Closing the connection disconnects the handlers and destroys that window. Shared application services are still shared, so per-user state belongs in the window or page rather than in singleton services.
+
+The current proof of concept supports `ContentPage`, `ContentView`, `VerticalStackLayout`, `HorizontalStackLayout`, `Label`, and `Button`, including common text, color, sizing, padding, and interaction properties. It is not a complete MAUI platform: there is no browser-based text measurement, navigation/Shell implementation, or handler coverage for most controls. The server dispatcher and session lifecycle are experimental and need further validation before production use.
+
+Run the focused handler and session tests with:
+
+```bash
+dotnet test Ooui.Maui.Tests/Ooui.Maui.Tests.csproj
+```
 
 
 ## Example App

@@ -1,39 +1,22 @@
-﻿using System;
-using Microsoft.Maui.Controls;
-using Microsoft.Maui.Hosting;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.DependencyInjection;
-using Ooui.Maui;
 using Microsoft.Maui;
+using Microsoft.Maui.Controls;
+using Microsoft.Maui.Controls.Hosting;
+using Microsoft.Maui.Hosting;
+using Ooui.Maui;
 
-namespace ConsoleNet6
+namespace ConsoleNet6;
+
+public static class Program
 {
-	public class MainWindow : Microsoft.Maui.Controls.Window
-	{
-		public MainWindow() : base(new MainPage())
-		{
-		}
-	}
+    public static void Main()
+    {
+        var app = MauiApp.CreateBuilder()
+            .UseMauiApp<App>()
+            .UseOoui()
+            .Build();
 
-	public class Program
-	{
-		static void Main(string[] args)
-		{
-
-			System.Console.WriteLine("Hello chat room from Maui on Ooui");
-
-			var context = OouiMauiContext.FromStartup<Startup>();
-
-			var Application = context.Services.GetRequiredService<IApplication>();
-			
-			var element = Application.ToOouiElement(context);
-
-			Console.WriteLine($"Element = {element}");
-
-			Ooui.UI.Publish("/", element);
-			for (;;) {
-				System.Threading.Thread.Sleep(1000);
-			}
-		}
-	}
+        app.Publish();
+        Console.WriteLine($"MAUI 11 on Ooui: {Ooui.UI.GetUrl("/")}");
+        Thread.Sleep(Timeout.Infinite);
+    }
 }
