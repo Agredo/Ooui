@@ -8,7 +8,7 @@
 | [![NuGet Package](https://img.shields.io/nuget/v/Ooui.AspNetCore.svg)](https://www.nuget.org/packages/Ooui.AspNetCore) | [Ooui.AspNetCore](https://www.nuget.org/packages/Ooui.AspNetCore) | Integration with ASP.NET Core (`net11.0` in this fork) |
 | [![NuGet Package](https://img.shields.io/nuget/v/Ooui.Forms.svg)](https://www.nuget.org/packages/Ooui.Forms) | [Ooui.Forms](https://www.nuget.org/packages/Ooui.Forms) | Xamarin.Forms backend using Ooui ([Status](Documentation/OouiFormsStatus.md)) |
 | `Ooui.Maui` (experimental, source only) | [Ooui.Maui](Ooui.Maui/Ooui.Maui.csproj) | Experimental .NET MAUI 11 browser backend |
-| [![NuGet Package](https://img.shields.io/nuget/v/Ooui.Wasm.svg)](https://www.nuget.org/packages/Ooui.Wasm) | [Ooui.Wasm](https://www.nuget.org/packages/Ooui.Wasm) | Package your app into a web assembly |
+| [![NuGet Package](https://img.shields.io/nuget/v/Ooui.Wasm.svg)](https://www.nuget.org/packages/Ooui.Wasm) | [Ooui.Wasm](https://www.nuget.org/packages/Ooui.Wasm) | Package your app into a web assembly (not built on this branch, see below) |
 
 Ooui (pronounced *weee!*) is a small cross-platform UI library for .NET that uses web technologies.
 
@@ -34,6 +34,23 @@ dotnet run --project Samples/Samples.csproj
 This will open the default starting page for the Samples. Now point your browser at [http://localhost:8080/shared-button](http://localhost:8080/shared-button)
 
 You should see a button that tracks the number of times it was clicked. The source code for that button is shown in the example below.
+
+
+## Building and testing this branch
+
+Everything in the solution targets .NET 11 and builds warning-free:
+
+```bash
+dotnet build Ooui.sln
+dotnet test Ooui.sln
+```
+
+`Ooui.Wasm.Build.Tasks` is excluded from the solution: it compiles the vendored `mono/linker` sources from an uninitialised git submodule and cannot build without it. Initialise the submodule and add the project back if you need the legacy web assembly packaging:
+
+```bash
+git submodule update --init Ooui.Wasm.Build.Tasks/linker
+dotnet sln Ooui.sln add Ooui.Wasm.Build.Tasks/Ooui.Wasm.Build.Tasks.csproj
+```
 
 
 ## .NET MAUI 11 (experimental)

@@ -76,12 +76,17 @@ namespace Tests
             }
         }
 
+        static readonly System.Net.Http.HttpClient http = new System.Net.Http.HttpClient ();
+
+        static string DownloadString (string url)
+        {
+            return http.GetStringAsync (url).GetAwaiter ().GetResult ();
+        }
+
         static string DownloadUI (string url)
         {
             UI.WaitUntilStarted ();
-            var c = new System.Net.WebClient ();
-            var r = c.DownloadString (UI.GetUrl (url));
-            return r;
+            return DownloadString (UI.GetUrl (url));
         }
 
         [TestMethod]
@@ -141,8 +146,7 @@ namespace Tests
             var f = System.IO.Path.GetTempFileName ();
             UI.PublishFile ("/file", f);
             UI.WaitUntilStarted ();
-            var c = new System.Net.WebClient ();
-            var r = c.DownloadString (UI.GetUrl ("/file"));
+            var r = DownloadString (UI.GetUrl ("/file"));
             Assert.AreEqual ("", r);
         }
 
@@ -153,8 +157,7 @@ namespace Tests
             System.IO.File.WriteAllText (f, "Test Ooui Text File", System.Text.Encoding.UTF8);
             UI.PublishFile ("/text-file", f, "text/plain; charset=utf-8");
             UI.WaitUntilStarted ();
-            var c = new System.Net.WebClient ();
-            var r = c.DownloadString (UI.GetUrl ("/text-file"));
+            var r = DownloadString (UI.GetUrl ("/text-file"));
             Assert.AreEqual ("Test Ooui Text File", r);
         }
 
@@ -165,8 +168,7 @@ namespace Tests
             System.IO.File.WriteAllText (f, "Test Ooui Text File 2", System.Text.Encoding.UTF8);
             UI.PublishFile (f);
             UI.WaitUntilStarted ();
-            var c = new System.Net.WebClient ();
-            var r = c.DownloadString (UI.GetUrl ("/" + System.IO.Path.GetFileName (f)));
+            var r = DownloadString (UI.GetUrl ("/" + System.IO.Path.GetFileName (f)));
             Assert.AreEqual ("Test Ooui Text File 2", r);
         }
 
@@ -175,8 +177,7 @@ namespace Tests
         {
             UI.PublishJson ("/json", new JsonTestObject ());
             UI.WaitUntilStarted ();
-            var c = new System.Net.WebClient ();
-            var r = c.DownloadString (UI.GetUrl ("/json"));
+            var r = DownloadString (UI.GetUrl ("/json"));
             Assert.AreEqual ("{\"Name\":\"X\",\"Value\":null}", r);
         }
 
@@ -187,9 +188,8 @@ namespace Tests
             var i = 1;
             UI.PublishJson ("/jsond", () => new JsonTestObject { Value = i++ });
             UI.WaitUntilStarted ();
-            var c = new System.Net.WebClient ();
-            var r1 = c.DownloadString (UI.GetUrl ("/jsond"));
-            var r2 = c.DownloadString (UI.GetUrl ("/jsond"));
+            var r1 = DownloadString (UI.GetUrl ("/jsond"));
+            var r2 = DownloadString (UI.GetUrl ("/jsond"));
             Assert.AreEqual ("{\"Name\":\"X\",\"Value\":1}", r1);
             Assert.AreEqual ("{\"Name\":\"X\",\"Value\":2}", r2);
         }

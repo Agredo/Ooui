@@ -31,7 +31,7 @@ namespace Tests
                 Value = "woo",
             });
             Assert.AreEqual (1, count);
-            Assert.AreEqual (e.Value, "woo");
+            Assert.AreEqual ("woo", e.Value);
         }
     }
 }

@@ -1,16 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5</TargetFramework>
+    <TargetFramework>net11.0</TargetFramework>
 
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="10.0.2" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.3.0-preview-20170427-09" />
-    <PackageReference Include="MSTest.TestAdapter" Version="1.1.17" />
-    <PackageReference Include="MSTest.TestFramework" Version="1.1.17" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.3.0" />
+    <PackageReference Include="MSTest.TestAdapter" Version="4.2.1" />
+    <PackageReference Include="MSTest.TestFramework" Version="4.2.1" />
   </ItemGroup>
 
   <ItemGroup>
