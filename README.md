@@ -95,7 +95,7 @@ app.Publish();
 Thread.Sleep(Timeout.Infinite);
 ```
 
-Run the included interactive showcase and open <http://localhost:8080/>. It demonstrates data binding, validation and focus, form editing and reset, save/busy feedback, activity filtering, scrolling, responsive cards, and independent browser sessions:
+Run the included interactive showcase and open <http://localhost:8080/>. The whole page is a single MAUI `ContentPage` in [`PlatformSamples/ConsoleNet11/MainPage.xaml`](PlatformSamples/ConsoleNet11/MainPage.xaml) — layouts, styles, bindings and the `<local:PercentageConverter>` resource are XAML, the code-behind only holds the click handlers. It demonstrates data binding, validation and focus, form editing and reset, save/busy feedback, activity filtering, scrolling, responsive cards, and independent browser sessions:
 
 ```bash
 dotnet run --project PlatformSamples/ConsoleNet11/ConsoleNet11.csproj

@@ -1,0 +1,302 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:ConsoleNet11"
+             x:Class="ConsoleNet11.MainPage"
+             x:DataType="local:LaunchModel"
+             Title="Ooui × MAUI 11 · Build for the web"
+             BackgroundColor="{StaticResource Page}">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <Color x:Key="Page">#f5f7fc</Color>
+            <Color x:Key="Ink">#172238</Color>
+            <Color x:Key="Muted">#6f7990</Color>
+            <Color x:Key="Accent">#6854d9</Color>
+            <Color x:Key="Line">#e0e5f0</Color>
+            <Color x:Key="Soft">#eef0f7</Color>
+            <Color x:Key="Success">#31846a</Color>
+            <Color x:Key="Danger">#bb3d57</Color>
+            <Color x:Key="HeroEyebrow">#bdb5ff</Color>
+            <Color x:Key="HeroBody">#d3d0ef</Color>
+
+            <SolidColorBrush x:Key="LineBrush" Color="{StaticResource Line}" />
+
+            <local:PercentageConverter x:Key="Percentage" />
+
+            <Style x:Key="Card" TargetType="Border">
+                <Setter Property="BackgroundColor" Value="White" />
+                <Setter Property="Stroke" Value="{StaticResource LineBrush}" />
+                <Setter Property="StrokeThickness" Value="1" />
+                <Setter Property="Padding" Value="24" />
+                <Setter Property="StrokeShape">
+                    <Setter.Value>
+                        <RoundRectangle CornerRadius="18" />
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style x:Key="CardHeading" TargetType="Label">
+                <Setter Property="FontSize" Value="24" />
+                <Setter Property="FontAttributes" Value="Bold" />
+                <Setter Property="TextColor" Value="{StaticResource Ink}" />
+            </Style>
+
+            <Style x:Key="Small" TargetType="Label">
+                <Setter Property="FontSize" Value="14" />
+                <Setter Property="LineHeight" Value="1.3" />
+                <Setter Property="TextColor" Value="{StaticResource Muted}" />
+            </Style>
+
+            <Style x:Key="Caption" TargetType="Label">
+                <Setter Property="FontSize" Value="12" />
+                <Setter Property="FontAttributes" Value="Bold" />
+                <Setter Property="CharacterSpacing" Value="1" />
+                <Setter Property="TextColor" Value="{StaticResource Muted}" />
+            </Style>
+
+            <Style x:Key="Body" TargetType="Label">
+                <Setter Property="FontSize" Value="16" />
+                <Setter Property="TextColor" Value="{StaticResource Ink}" />
+            </Style>
+
+            <Style x:Key="Primary" TargetType="Button">
+                <Setter Property="TextColor" Value="White" />
+                <Setter Property="BackgroundColor" Value="{StaticResource Accent}" />
+                <Setter Property="CornerRadius" Value="10" />
+                <Setter Property="FontAttributes" Value="Bold" />
+            </Style>
+
+            <Style x:Key="Secondary" TargetType="Button">
+                <Setter Property="TextColor" Value="{StaticResource Ink}" />
+                <Setter Property="BackgroundColor" Value="{StaticResource Soft}" />
+                <Setter Property="CornerRadius" Value="10" />
+            </Style>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <VerticalStackLayout Spacing="24">
+
+        <Border AutomationId="hero" StrokeThickness="0" Padding="32">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="24" />
+            </Border.StrokeShape>
+            <VerticalStackLayout Spacing="16">
+                <Label Text="OOUI  /  MAUI 11"
+                       TextColor="{StaticResource HeroEyebrow}"
+                       FontSize="13"
+                       CharacterSpacing="2" />
+                <Label AutomationId="hero-title"
+                       Text="Your next web app. Written in C#."
+                       TextColor="White"
+                       FontSize="48"
+                       FontAttributes="Bold" />
+                <Label Text="Familiar .NET controls. Native browser elements. One interactive experience, session by session."
+                       TextColor="{StaticResource HeroBody}"
+                       FontSize="19"
+                       LineHeight="1.35" />
+            </VerticalStackLayout>
+        </Border>
+
+        <Grid AutomationId="feature-grid"
+              ColumnSpacing="24"
+              RowSpacing="24"
+              ColumnDefinitions="*,*"
+              RowDefinitions="Auto">
+
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="14">
+                    <Label Style="{StaticResource CardHeading}" Text="Launch a new idea" />
+                    <Label Style="{StaticResource Small}" Text="An interactive form, powered by your .NET model." />
+
+                    <VerticalStackLayout Spacing="16">
+                        <Label Style="{StaticResource Caption}" Text="PROJECT NAME" />
+                        <Entry x:Name="ProjectEntry"
+                               AutomationId="project-name"
+                               Placeholder="e.g. Northstar"
+                               ReturnType="Done"
+                               Text="{Binding ProjectName}"
+                               Completed="OnProjectCompleted" />
+
+                        <Label Style="{StaticResource Caption}" Text="PROJECT TYPE" />
+                        <Picker x:Name="RolePicker"
+                                AutomationId="project-role"
+                                Title="Choose a project type"
+                                SelectedItem="{Binding Role}">
+                            <Picker.ItemsSource>
+                                <x:Array Type="{x:Type x:String}">
+                                    <x:String>Marketing site</x:String>
+                                    <x:String>Customer portal</x:String>
+                                    <x:String>Internal dashboard</x:String>
+                                </x:Array>
+                            </Picker.ItemsSource>
+                        </Picker>
+
+                        <Label Style="{StaticResource Caption}" Text="LAUNCH DATE" />
+                        <DatePicker x:Name="LaunchDatePicker" AutomationId="launch-date" />
+
+                        <Label Style="{StaticResource Caption}" Text="LAUNCH TIME" />
+                        <TimePicker x:Name="LaunchTimePicker" AutomationId="launch-time" />
+
+                        <HorizontalStackLayout Spacing="10">
+                            <CheckBox x:Name="PreviewCheckBox"
+                                      AutomationId="preview-ready"
+                                      IsChecked="True"
+                                      Color="{StaticResource Accent}" />
+                            <Label Style="{StaticResource Body}" Text="Ready for a private preview" />
+                        </HorizontalStackLayout>
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="14">
+                    <Label Style="{StaticResource CardHeading}" Text="Make it feel alive" />
+                    <Label Style="{StaticResource Small}" Text="Two-way input, live progress and useful feedback." />
+
+                    <VerticalStackLayout Spacing="14">
+                        <Label Text="{Binding ProgressText}"
+                               FontSize="18"
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource Ink}" />
+                        <ProgressBar Progress="{Binding Progress, Converter={StaticResource Percentage}}"
+                                     ProgressColor="{StaticResource Accent}"
+                                     HeightRequest="10" />
+                        <Slider x:Name="ProgressSlider"
+                                AutomationId="progress-slider"
+                                Minimum="0"
+                                Maximum="100"
+                                Value="{Binding Progress, Mode=TwoWay}"
+                                ThumbColor="{StaticResource Accent}"
+                                MinimumTrackColor="{StaticResource Accent}" />
+                        <Label Text="Drag to update readiness"
+                               FontSize="13"
+                               TextColor="{StaticResource Muted}" />
+
+                        <Label Style="{StaticResource Caption}" Text="NOTES" />
+                        <Editor x:Name="NotesEditor"
+                                AutomationId="project-notes"
+                                Placeholder="What makes this project special?"
+                                HeightRequest="100"
+                                MaxLength="400"
+                                Text="{Binding Notes}" />
+
+                        <HorizontalStackLayout Spacing="10">
+                            <Switch x:Name="NotificationsSwitch"
+                                    AutomationId="notifications"
+                                    OnColor="{StaticResource Accent}"
+                                    IsToggled="{Binding Notifications}" />
+                            <Label Style="{StaticResource Body}" Text="Notify the launch team" />
+                        </HorizontalStackLayout>
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+        </Grid>
+
+        <Grid AutomationId="overview-grid"
+              ColumnSpacing="20"
+              RowSpacing="20"
+              ColumnDefinitions="*,*,*"
+              RowDefinitions="Auto">
+
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="14">
+                    <Label Style="{StaticResource CardHeading}" Text="Server-driven by design" />
+                    <Label Style="{StaticResource Small}" Text="Your state stays in .NET. Ooui takes care of the browser." />
+                    <Label Text="●  Connected"
+                           TextColor="{StaticResource Success}"
+                           FontAttributes="Bold" />
+                    <Label Style="{StaticResource Small}" Text="Each WebSocket has its own page, bindings and activity feed." />
+                    <Label x:Name="EventCountLabel" Style="{StaticResource Small}" Text="0 events this session" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="14">
+                    <Label Style="{StaticResource CardHeading}" Text="A real MAUI workflow" />
+                    <Label Style="{StaticResource Small}" Text="Use familiar controls, bindings and layout—not a JavaScript UI clone." />
+                    <Label Text="C# → HTML + CSS"
+                           FontSize="23"
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource Accent}" />
+                    <Label Style="{StaticResource Small}" Text="MAUI 11 handlers translate your views into native browser elements." />
+                </VerticalStackLayout>
+            </Border>
+
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="14">
+                    <Label Style="{StaticResource CardHeading}" Text="Ready to explore" />
+                    <Label Style="{StaticResource Small}" Text="Small controls, a coherent foundation, and room to grow." />
+                    <BoxView Color="{StaticResource Accent}" HeightRequest="4" CornerRadius="2" />
+                    <Label Text="18 controls. One .NET app."
+                           FontSize="18"
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource Ink}" />
+                    <Label Style="{StaticResource Small}" Text="This sample is a demonstration, not a complete MAUI web platform." />
+                </VerticalStackLayout>
+            </Border>
+        </Grid>
+
+        <Grid AutomationId="workload-grid"
+              ColumnSpacing="24"
+              RowSpacing="24"
+              ColumnDefinitions="*,*"
+              RowDefinitions="Auto">
+
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="14">
+                    <Label Style="{StaticResource CardHeading}" Text="Save your launch plan" />
+                    <Label Style="{StaticResource Small}" Text="Validation and application logic run in C#." />
+                    <VerticalStackLayout Spacing="14">
+                        <HorizontalStackLayout Spacing="12">
+                            <Button x:Name="SaveButton"
+                                    AutomationId="save"
+                                    Text="Save launch plan"
+                                    Style="{StaticResource Primary}"
+                                    Clicked="OnSaveClicked" />
+                            <Button AutomationId="reset"
+                                    Text="Reset"
+                                    Style="{StaticResource Secondary}"
+                                    Clicked="OnResetClicked" />
+                            <ActivityIndicator x:Name="Busy"
+                                               IsRunning="False"
+                                               Color="{StaticResource Accent}"
+                                               HeightRequest="30" />
+                        </HorizontalStackLayout>
+                        <Label x:Name="StatusLabel"
+                               AutomationId="save-status"
+                               Text="No changes saved yet."
+                               TextColor="{StaticResource Ink}"
+                               FontSize="16" />
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="14">
+                    <Label Style="{StaticResource CardHeading}" Text="Session activity" />
+                    <Label Style="{StaticResource Small}" Text="Scroll, filter and interact. Nothing is shared with another visitor." />
+                    <VerticalStackLayout Spacing="12">
+                        <SearchBar x:Name="Search"
+                                   AutomationId="activity-search"
+                                   Placeholder="Filter the activity feed…"
+                                   TextChanged="OnSearchTextChanged"
+                                   SearchButtonPressed="OnSearchButtonPressed" />
+                        <ScrollView AutomationId="activity"
+                                    Orientation="Vertical"
+                                    HeightRequest="265">
+                            <VerticalStackLayout x:Name="ActivityFeed" Spacing="0" />
+                        </ScrollView>
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+        </Grid>
+
+        <Label Text="Built with Ooui · .NET MAUI 11 · An experimental browser backend"
+               FontSize="13"
+               TextColor="{StaticResource Muted}"
+               HorizontalTextAlignment="Center"
+               Padding="0,12" />
+    </VerticalStackLayout>
+
+</ContentPage>
