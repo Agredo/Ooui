@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:AspNetCoreMaui"
+             x:Class="AspNetCoreMaui.Pages.ControlsPage">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <local:Theme />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <VerticalStackLayout Spacing="20">
+        <Label Style="{StaticResource Heading}" Text="Controls" />
+        <Label Style="{StaticResource Lead}"
+               Text="A quick tour of what this backend renders today." />
+
+        <Border Style="{StaticResource Card}">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="18" />
+            </Border.StrokeShape>
+            <VerticalStackLayout Spacing="12">
+                <Label Style="{StaticResource CardHeading}" Text="Input and feedback" />
+                <Label Style="{StaticResource Small}" Text="SearchBar, Stepper and ActivityIndicator." />
+
+                <SearchBar AutomationId="search"
+                           Placeholder="Type to see the server react…"
+                           TextChanged="OnSearchTextChanged" />
+                <Label x:Name="EchoLabel" AutomationId="search-echo" Style="{StaticResource Small}" />
+
+                <Label x:Name="StepperLabel"
+                       AutomationId="stepper-value"
+                       Text="3 seats"
+                       FontSize="18"
+                       FontAttributes="Bold"
+                       TextColor="{StaticResource Ink}" />
+                <Stepper AutomationId="stepper"
+                         Minimum="0"
+                         Maximum="10"
+                         Value="3"
+                         Increment="1"
+                         ValueChanged="OnStepperValueChanged" />
+
+                <HorizontalStackLayout Spacing="14">
+                    <ActivityIndicator AutomationId="busy"
+                                       IsRunning="True"
+                                       Color="{StaticResource Accent}"
+                                       HeightRequest="28" />
+                    <Label Style="{StaticResource Body}"
+                           Text="An ActivityIndicator, animating in the browser" />
+                </HorizontalStackLayout>
+            </VerticalStackLayout>
+        </Border>
+
+        <Border Style="{StaticResource Card}">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="18" />
+            </Border.StrokeShape>
+            <VerticalStackLayout Spacing="12">
+                <Label Style="{StaticResource CardHeading}" Text="Layout and decoration" />
+                <Label Style="{StaticResource Small}" Text="Border, BoxView, Image and ProgressBar." />
+
+                <BoxView Color="{StaticResource Accent}" HeightRequest="4" CornerRadius="2" />
+                <ProgressBar Progress="0.45" ProgressColor="{StaticResource Accent}" HeightRequest="10" />
+
+                <HorizontalStackLayout Spacing="16">
+                    <Image AutomationId="logo"
+                           Source="/logo.svg"
+                           Aspect="AspectFit"
+                           HeightRequest="56" />
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="This logo is an SVG served by the same ASP.NET app."
+                               FontSize="16"
+                               TextColor="{StaticResource Ink}" />
+                        <Label Style="{StaticResource Small}"
+                               Text="Fill, spacing, corner radius and object-fit all come from MAUI properties." />
+                    </VerticalStackLayout>
+                </HorizontalStackLayout>
+            </VerticalStackLayout>
+        </Border>
+
+        <Border Style="{StaticResource Card}">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="18" />
+            </Border.StrokeShape>
+            <VerticalStackLayout Spacing="12">
+                <Label Style="{StaticResource CardHeading}" Text="Not supported yet" />
+                <Label Style="{StaticResource Small}" Text="Keep these out of a production plan for now." />
+                <Label Style="{StaticResource Small}"
+                       Text="NavigationPage, Shell and TabbedPage, ListView, WebView, graphics, gestures and animations." />
+            </VerticalStackLayout>
+        </Border>
+    </VerticalStackLayout>
+
+</ContentPage>

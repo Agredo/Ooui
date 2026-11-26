@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:AspNetCoreMaui"
+             x:Class="AspNetCoreMaui.Pages.FormPage">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <local:Theme />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <VerticalStackLayout Spacing="20">
+        <Label Style="{StaticResource Heading}" Text="Form" />
+        <Label Style="{StaticResource Lead}"
+               Text="Entries, pickers, sliders and switches — all bound to plain C# state." />
+
+        <Border Style="{StaticResource Card}">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="18" />
+            </Border.StrokeShape>
+            <VerticalStackLayout Spacing="12">
+                <Label Style="{StaticResource CardHeading}" Text="Launch a new idea" />
+                <Label Style="{StaticResource Small}"
+                       Text="Your draft belongs to this browser: type a name, visit another page, come back — it is still there." />
+
+                <Label Style="{StaticResource Caption}" Text="PROJECT NAME" />
+                <Entry x:Name="NameEntry"
+                       AutomationId="name"
+                       Placeholder="e.g. Northstar"
+                       TextChanged="OnNameChanged" />
+
+                <Label Style="{StaticResource Caption}" Text="CONTACT" />
+                <Entry x:Name="EmailEntry"
+                       AutomationId="email"
+                       Placeholder="you@example.com"
+                       TextChanged="OnEmailChanged" />
+
+                <Label Style="{StaticResource Caption}" Text="PROJECT TYPE" />
+                <Picker x:Name="RolePicker"
+                        AutomationId="role"
+                        Title="Choose a project type"
+                        SelectedIndex="0">
+                    <Picker.ItemsSource>
+                        <x:Array Type="{x:Type x:String}">
+                            <x:String>Marketing site</x:String>
+                            <x:String>Customer portal</x:String>
+                            <x:String>Internal dashboard</x:String>
+                        </x:Array>
+                    </Picker.ItemsSource>
+                </Picker>
+
+                <Grid ColumnSpacing="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <VerticalStackLayout Grid.Column="0" Spacing="6">
+                        <Label Style="{StaticResource Caption}" Text="LAUNCH DATE" />
+                        <DatePicker x:Name="DateControl" AutomationId="date" />
+                    </VerticalStackLayout>
+                    <VerticalStackLayout Grid.Column="1" Spacing="6">
+                        <Label Style="{StaticResource Caption}" Text="LAUNCH TIME" />
+                        <TimePicker x:Name="TimeControl" AutomationId="time" />
+                    </VerticalStackLayout>
+                </Grid>
+
+                <Label Style="{StaticResource Caption}" Text="BUDGET" />
+                <Label x:Name="BudgetLabel"
+                       AutomationId="budget-value"
+                       Text="68 %"
+                       FontSize="18"
+                       FontAttributes="Bold"
+                       TextColor="{StaticResource Ink}" />
+                <ProgressBar x:Name="BudgetBar"
+                             Progress="0.68"
+                             ProgressColor="{StaticResource Accent}"
+                             HeightRequest="10" />
+                <Slider x:Name="BudgetSlider"
+                        AutomationId="budget"
+                        Minimum="0"
+                        Maximum="100"
+                        Value="68"
+                        ThumbColor="{StaticResource Accent}"
+                        MinimumTrackColor="{StaticResource Accent}"
+                        ValueChanged="OnBudgetChanged" />
+
+                <HorizontalStackLayout Spacing="12">
+                    <Switch AutomationId="notifications"
+                            IsToggled="True"
+                            OnColor="{StaticResource Accent}" />
+                    <Label Style="{StaticResource Body}" Text="Notify the launch team" />
+                </HorizontalStackLayout>
+                <HorizontalStackLayout Spacing="12">
+                    <CheckBox x:Name="TermsCheckBox"
+                              AutomationId="terms"
+                              Color="{StaticResource Accent}" />
+                    <Label Style="{StaticResource Body}" Text="I accept the terms" />
+                </HorizontalStackLayout>
+
+                <Label Style="{StaticResource Caption}" Text="NOTES" />
+                <Editor x:Name="NotesEditor"
+                        AutomationId="notes"
+                        Placeholder="What makes this project special?"
+                        HeightRequest="110"
+                        MaxLength="400"
+                        TextChanged="OnNotesChanged" />
+
+                <HorizontalStackLayout Spacing="12">
+                    <Button Style="{StaticResource Primary}"
+                            AutomationId="submit"
+                            Text="Submit"
+                            Clicked="OnSubmitClicked" />
+                    <Button Style="{StaticResource Secondary}"
+                            AutomationId="reset-form"
+                            Text="Reset"
+                            Clicked="OnResetClicked" />
+                </HorizontalStackLayout>
+
+                <Label x:Name="StatusLabel" AutomationId="form-status" Style="{StaticResource Small}" />
+            </VerticalStackLayout>
+        </Border>
+    </VerticalStackLayout>
+
+</ContentPage>

@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:AspNetCoreMaui"
+             x:Class="AspNetCoreMaui.Pages.PeoplePage">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <local:Theme />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <VerticalStackLayout Spacing="20">
+        <Label Style="{StaticResource Heading}" Text="CollectionView" />
+        <Label Style="{StaticResource Lead}"
+               Text="An observable ItemsSource renders one element per item. Clicking a row selects it and reports back to C#." />
+
+        <Border Style="{StaticResource Card}">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="18" />
+            </Border.StrokeShape>
+            <VerticalStackLayout Spacing="12">
+                <Label Style="{StaticResource CardHeading}" Text="Team" />
+                <Label Style="{StaticResource Small}"
+                       Text="The list is a MAUI CollectionView. Its items, the template and the selection all live in the session of this browser." />
+
+                <CollectionView x:Name="PeopleList"
+                                AutomationId="people"
+                                SelectionMode="Single"
+                                SelectionChanged="OnSelectionChanged">
+                    <CollectionView.ItemsLayout>
+                        <LinearItemsLayout Orientation="Vertical" ItemSpacing="12" />
+                    </CollectionView.ItemsLayout>
+                    <!-- The template is XAML: one Border per Person, filled by bindings. -->
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Border BackgroundColor="White"
+                                    Stroke="{StaticResource Edge}"
+                                    StrokeThickness="1"
+                                    Padding="14,12">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="16" />
+                                </Border.StrokeShape>
+                                <HorizontalStackLayout Spacing="14">
+                                    <Border BackgroundColor="{Binding Accent}"
+                                            StrokeThickness="0"
+                                            WidthRequest="44"
+                                            HeightRequest="44"
+                                            VerticalOptions="Center">
+                                        <Border.StrokeShape>
+                                            <RoundRectangle CornerRadius="22" />
+                                        </Border.StrokeShape>
+                                        <Label Text="{Binding Initials}"
+                                               FontSize="16"
+                                               FontAttributes="Bold"
+                                               TextColor="White"
+                                               HorizontalTextAlignment="Center"
+                                               VerticalTextAlignment="Center" />
+                                    </Border>
+                                    <VerticalStackLayout Spacing="2" VerticalOptions="Center">
+                                        <Label Text="{Binding Name}"
+                                               FontSize="17"
+                                               FontAttributes="Bold"
+                                               TextColor="{StaticResource Ink}" />
+                                        <Label Text="{Binding Role}"
+                                               FontSize="14"
+                                               TextColor="{StaticResource Muted}" />
+                                    </VerticalStackLayout>
+                                </HorizontalStackLayout>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                    <CollectionView.EmptyView>
+                        <Label Style="{StaticResource Small}"
+                               Text="Nobody here yet. Use “Add person” to start the list." />
+                    </CollectionView.EmptyView>
+                </CollectionView>
+
+                <HorizontalStackLayout Spacing="12">
+                    <Button x:Name="AddButton"
+                            Style="{StaticResource Primary}"
+                            AutomationId="add-person"
+                            Text="Add person"
+                            Clicked="OnAddClicked" />
+                    <Button x:Name="RemoveButton"
+                            Style="{StaticResource Secondary}"
+                            AutomationId="remove-person"
+                            Text="Remove selected"
+                            Clicked="OnRemoveClicked" />
+                </HorizontalStackLayout>
+
+                <Label x:Name="StatusLabel" AutomationId="list-status" Style="{StaticResource Small}" />
+            </VerticalStackLayout>
+        </Border>
+
+        <Border Style="{StaticResource Card}">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="18" />
+            </Border.StrokeShape>
+            <VerticalStackLayout Spacing="12">
+                <Label Style="{StaticResource CardHeading}" Text="What happens under the hood" />
+                <Label Style="{StaticResource Small}"
+                       Text="Selecting a row sends one message to the server, the handler flips aria-selected and calls SelectionChanged in C#." />
+                <Label Style="{StaticResource Small}"
+                       Text="Adding or removing an item raises CollectionChanged and only the containers are re-rendered — no page reload, no virtualisation. Grouping, headers and footers are still missing." />
+            </VerticalStackLayout>
+        </Border>
+    </VerticalStackLayout>
+
+</ContentPage>

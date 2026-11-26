@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:AspNetCoreMaui"
+             x:Class="AspNetCoreMaui.Pages.OverviewPage">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <local:Theme />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <VerticalStackLayout Spacing="20">
+
+        <Border AutomationId="hero"
+                BackgroundColor="{StaticResource Hero}"
+                StrokeThickness="0"
+                Padding="34">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="24" />
+            </Border.StrokeShape>
+            <VerticalStackLayout Spacing="14">
+                <Label Text="OOUI  /  MAUI 11  /  ASP.NET CORE"
+                       TextColor="{StaticResource HeroEyebrow}"
+                       FontSize="13"
+                       CharacterSpacing="2" />
+                <Label AutomationId="hero-title"
+                       Text="Your next website, written in C#."
+                       TextColor="White"
+                       FontSize="42"
+                       FontAttributes="Bold" />
+                <Label Text="Familiar .NET controls become native browser elements. State stays on the server, each browser gets its own session."
+                       TextColor="{StaticResource HeroBody}"
+                       FontSize="18"
+                       LineHeight="1.35" />
+            </VerticalStackLayout>
+        </Border>
+
+        <Border Style="{StaticResource Card}">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="18" />
+            </Border.StrokeShape>
+            <VerticalStackLayout Spacing="12">
+                <Label Style="{StaticResource CardHeading}" Text="Server-rendered MAUI" />
+                <Label Style="{StaticResource Small}"
+                       Text="Ooui.Maui registers a MAUI handler per control and translates the visual tree into HTML elements." />
+                <Label Style="{StaticResource Body}"
+                       Text="A click is sent over the WebSocket, handled in C#, and only the changed attributes are sent back." />
+            </VerticalStackLayout>
+        </Border>
+
+        <Border Style="{StaticResource Card}">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="18" />
+            </Border.StrokeShape>
+            <VerticalStackLayout Spacing="12">
+                <Label Style="{StaticResource CardHeading}" Text="State that outlives the page" />
+                <Label Style="{StaticResource Small}"
+                       Text="Pages are rebuilt on every request. Everything that has to survive lives in the user session of this browser." />
+                <!-- The counters and the name come from the session of this browser. -->
+                <Label x:Name="StateLabel" Style="{StaticResource Body}" />
+                <Label x:Name="SessionLabel" Style="{StaticResource Small}" />
+            </VerticalStackLayout>
+        </Border>
+
+        <Border Style="{StaticResource Card}">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="18" />
+            </Border.StrokeShape>
+            <VerticalStackLayout Spacing="12">
+                <Label Style="{StaticResource CardHeading}" Text="A small, honest foundation" />
+                <Label Style="{StaticResource Small}"
+                       Text="Labels, buttons, inputs, pickers, sliders, grids, borders, a CollectionView and a few more controls are supported." />
+                <Label Style="{StaticResource Small}"
+                       Text="Shell, ListView, WebView and animations are not implemented yet. This sample is a demonstration, not a production platform." />
+            </VerticalStackLayout>
+        </Border>
+
+    </VerticalStackLayout>
+
+</ContentPage>

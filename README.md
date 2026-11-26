@@ -177,13 +177,16 @@ Then open <http://localhost:8099/Samples/Clicker>. Note that this sample still u
 dotnet run --project PlatformSamples/AspNetCoreMaui/AspNetCoreMaui.csproj   # http://localhost:8090
 ```
 
-| Route | Shows |
-| --- | --- |
-| `/` | `Grid`/`Border`/`Image` hero, `FlexLayout` cards |
-| `/counter` | `Label` + `Button` round trip, per browser state |
-| `/form` | `Entry`, `Editor`, `Picker`, `DatePicker`, `TimePicker`, `Slider`, `Stepper`, `CheckBox`, `Switch` and server-side validation |
-| `/controls` | `ProgressBar`, `ActivityIndicator`, `BoxView`, `SearchBar`, nested stack layouts |
-| `/reset` | clears the session and redirects to `/` |
+| Route | Page | Shows |
+| --- | --- | --- |
+| `/` | `Pages/OverviewPage.xaml` | `Border` hero, session counters, cards for the other pages |
+| `/counter` | `Pages/CounterPage.xaml` | `Label` + `Button` round trip, per browser state |
+| `/form` | `Pages/FormPage.xaml` | `Entry`, `Editor`, `Picker`, `DatePicker`, `TimePicker`, `Slider`, `CheckBox` and server-side validation |
+| `/people` | `Pages/PeoplePage.xaml` | `CollectionView` with a XAML `DataTemplate`, selection, add and remove |
+| `/controls` | `Pages/ControlsPage.xaml` | `ProgressBar`, `ActivityIndicator`, `BoxView`, `SearchBar`, `Image`, nested stack layouts |
+| `/reset` | | clears the session and redirects to `/` |
+
+Every page is a normal MAUI `ContentPage` written in XAML with a code-behind, plus one `Theme.xaml` that holds the colours and styles through `MergedDictionaries`. Nothing in `Pages/` knows about HTML, Ooui or the browser — the controller is the only place that turns a page into a response.
 
 The wiring is two lines of setup plus a controller action:
 
@@ -200,10 +203,10 @@ SiteState BrowserState => HttpContext.GetOouiUserSession ()
     .GetOrAdd (SiteState.Key, () => new SiteState ());
 
 public IActionResult Index () =>
-    new ElementResult (Demos.Overview (BrowserState, HttpContext.GetOouiUserSession ()).ToOouiElement (mauiContext), title: "Ooui + MAUI");
+    new ElementResult (new Pages.OverviewPage (BrowserState, HttpContext.GetOouiUserSession ()).ToOouiElement (mauiContext), title: "Ooui + MAUI");
 ```
 
-Registering the context **as `IMauiContext`** is what lets the ASP.NET Core container resolve it in the controller. Navigation pages, Shell, `CollectionView` and gestures are not supported yet, so the sample sticks to plain `ContentPage` roots.
+Registering the context **as `IMauiContext`** is what lets the ASP.NET Core container resolve it in the controller. Navigation pages, Shell, `ListView`, `WebView` and gestures are not supported yet, so the sample sticks to plain `ContentPage` roots with `CollectionView` for lists.
 
 ### Multiple pages and session state
 
@@ -256,7 +259,38 @@ Two limits are worth knowing: the store lives in the memory of one process, so s
 
 The page itself lives in `PlatformSamples/MauiDemoUi` — a plain `net11.0`/`UseMaui` library with no Ooui and no host reference. Both hosts project-reference it and only pass a `renderMode` string, which the page shows in its badge. Everything else is identical, which is the point: no HTML, no JavaScript, no per-host view code.
 
-The page is written in **XAML** (`MauiDemoUi/DemoPage.xaml` plus a code-behind for the handlers), so the input format is XAML, the view objects are MAUI controls, and the output is HTML — once produced by Kestrel, once by WebAssembly. Any XAML page whose controls have an `Ooui.Maui` handler works the same way; the controls used here are `Label`, `Button`, `Entry`, `Switch`, `Slider`, `CheckBox`, `Border`, `ScrollView` and the stack layouts.
+The page is written in **XAML** (`MauiDemoUi/DemoPage.xaml` plus a code-behind for the handlers), so the input format is XAML, the view objects are MAUI controls, and the output is HTML — once produced by Kestrel, once by WebAssembly. Any XAML page whose controls have an `Ooui.Maui` handler works the same way; the controls used here are `Label`, `Button`, `Entry`, `Switch`, `Slider`, `CheckBox`, `Border`, `ScrollView`, `CollectionView` and the stack layouts.
+
+### MVVM with the Community Toolkit
+
+`MauiDemoUi/Mvvm` is a task list built the way a normal MAUI app is built: a view model, an item view model and a `ContentView` that binds to them. Nothing in it references Ooui, HTML or a host, and the same code runs on both rendering paths.
+
+```
+Mvvm/TasksViewModel.cs      ObservableObject, [ObservableProperty], [RelayCommand]
+Mvvm/TaskItemViewModel.cs   one item, its own [NotifyPropertyChangedFor] and RemoveCommand
+Mvvm/TasksView.xaml         ContentView, x:DataType, CollectionView with a XAML DataTemplate
+Mvvm/TasksView.xaml.cs      InitializeComponent () and BindingContext = new TasksViewModel ()
+```
+
+```csharp
+public partial class TasksViewModel : ObservableObject
+{
+    public ObservableCollection<TaskItemViewModel> Tasks { get; } = new (…);
+
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor (nameof (AddTaskCommand))]
+    string newTaskTitle = "";
+
+    bool CanAddTask () => !string.IsNullOrWhiteSpace (NewTaskTitle);
+
+    [RelayCommand (CanExecute = nameof (CanAddTask))]
+    void AddTask () { … }
+}
+```
+
+What the browser proves is that the toolkit needs nothing special: `TextChanged` from `EntryHandler` updates `NewTaskTitle` through a two-way binding, `[NotifyCanExecuteChangedFor]` re-evaluates `CanAddTask`, and the `Button` comes back `disabled` (the `MapIsEnabled` handler sets the `disabled` attribute). `[RelayCommand]` buttons inside a `DataTemplate` run the item's own `RemoveCommand`, so no `RelativeSource` binding is needed, and `[ObservableProperty]` on the item's `IsDone` refreshes a computed `State` and the summary label above the list.
+
+One XAML detail is worth knowing: `TasksView` declares its colours and styles in its own `<ContentView.Resources>` instead of inheriting them from `DemoPage`. A `ContentView` is parsed before it is attached to a page, so `StaticResource` lookups against the page dictionary would fail. When the same view is reused across pages, keeping its resources self-contained is the safe form.
 
 ```bash
 # the bundle first, because no build of the host can produce it (it needs a Wasm runtime identifier)

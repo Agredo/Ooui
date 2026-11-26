@@ -7,7 +7,7 @@ namespace AspNetCoreMaui;
 /// Everything the demo keeps for one browser. It lives in the Ooui user session, so it survives
 /// navigation, reloads and new page instances.
 /// </summary>
-sealed class SiteState
+public sealed class SiteState
 {
     public const string Key = "site";
 
@@ -35,7 +35,7 @@ sealed class SiteState
 }
 
 /// <summary>One row of the demo list: plain data, no view state.</summary>
-sealed class Person (string name, string role, string initials, Color accent)
+public sealed class Person (string name, string role, string initials, Color accent)
 {
     public string Name { get; } = name;
     public string Role { get; } = role;

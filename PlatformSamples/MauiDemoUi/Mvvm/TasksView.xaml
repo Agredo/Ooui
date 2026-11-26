@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:mvvm="clr-namespace:MauiDemoUi.Mvvm"
+             x:Class="MauiDemoUi.Mvvm.TasksView"
+             x:DataType="mvvm:TasksViewModel">
+
+    <!-- Self-contained on purpose: a ContentView is parsed before it is attached to its page,
+         so it cannot rely on the resources of the page that hosts it. -->
+    <ContentView.Resources>
+        <Color x:Key="Ink">#eef2f9</Color>
+        <Color x:Key="Muted">#8492aa</Color>
+        <Color x:Key="Accent">#8f7dff</Color>
+        <Color x:Key="Strong">#6854d9</Color>
+        <Color x:Key="Sunken">#101a2b</Color>
+        <Color x:Key="Edge">#253350</Color>
+
+        <Style x:Key="MvvmHeading" TargetType="Label">
+            <Setter Property="TextColor" Value="{StaticResource Ink}" />
+            <Setter Property="FontSize" Value="18" />
+            <Setter Property="FontAttributes" Value="Bold" />
+        </Style>
+        <Style x:Key="MvvmNote" TargetType="Label">
+            <Setter Property="TextColor" Value="{StaticResource Muted}" />
+            <Setter Property="FontSize" Value="13" />
+        </Style>
+        <Style x:Key="MvvmAction" TargetType="Button">
+            <Setter Property="TextColor" Value="White" />
+            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="HeightRequest" Value="42" />
+            <Setter Property="Padding" Value="18,0" />
+        </Style>
+    </ContentView.Resources>
+
+    <VerticalStackLayout Spacing="12">
+
+        <Label Text="MVVM with CommunityToolkit.Mvvm" Style="{StaticResource MvvmHeading}" />
+
+        <Label Style="{StaticResource MvvmNote}"
+               Text="The page binds to a view model that has never heard of the browser: ObservableObject, [ObservableProperty] and [RelayCommand] are all the plumbing there is." />
+
+        <Label AutomationId="task-summary"
+               Text="{Binding Summary}"
+               TextColor="{StaticResource Accent}"
+               FontSize="15" />
+
+        <HorizontalStackLayout Spacing="12">
+            <Entry AutomationId="task-input"
+                   Placeholder="What has to be done?"
+                   WidthRequest="320"
+                   Text="{Binding NewTaskTitle, Mode=TwoWay}" />
+            <Button AutomationId="task-add"
+                    Text="Add"
+                    Style="{StaticResource MvvmAction}"
+                    BackgroundColor="{StaticResource Strong}"
+                    Command="{Binding AddTaskCommand}" />
+        </HorizontalStackLayout>
+
+        <HorizontalStackLayout Spacing="12">
+            <Button AutomationId="task-suggest"
+                    Text="Suggest one"
+                    Style="{StaticResource MvvmAction}"
+                    BackgroundColor="{StaticResource Sunken}"
+                    TextColor="{StaticResource Ink}"
+                    Command="{Binding AddSuggestionCommand}" />
+            <Button AutomationId="task-clear"
+                    Text="Clear done"
+                    Style="{StaticResource MvvmAction}"
+                    BackgroundColor="{StaticResource Sunken}"
+                    TextColor="{StaticResource Ink}"
+                    Command="{Binding ClearDoneCommand}" />
+        </HorizontalStackLayout>
+
+        <CollectionView AutomationId="tasks"
+                        ItemsSource="{Binding Tasks}"
+                        SelectionMode="None">
+            <CollectionView.ItemsLayout>
+                <LinearItemsLayout Orientation="Vertical" ItemSpacing="8" />
+            </CollectionView.ItemsLayout>
+            <CollectionView.ItemTemplate>
+                <!-- x:DataType switches the compiled bindings to the item type. -->
+                <DataTemplate x:DataType="mvvm:TaskItemViewModel">
+                    <Border BackgroundColor="{StaticResource Sunken}"
+                            Stroke="{StaticResource Edge}"
+                            StrokeThickness="1"
+                            Padding="12,8">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="12" />
+                        </Border.StrokeShape>
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <CheckBox Grid.Column="0"
+                                      IsChecked="{Binding IsDone, Mode=TwoWay}"
+                                      VerticalOptions="Center" />
+                            <Label Grid.Column="1"
+                                   Text="{Binding Title}"
+                                   TextColor="{StaticResource Ink}"
+                                   FontSize="15"
+                                   VerticalOptions="Center" />
+                            <Label Grid.Column="2"
+                                   Text="{Binding State}"
+                                   TextColor="{StaticResource Muted}"
+                                   FontSize="13"
+                                   VerticalOptions="Center" />
+                            <Button Grid.Column="3"
+                                    Text="Remove"
+                                    FontSize="13"
+                                    HeightRequest="34"
+                                    Padding="12,0"
+                                    CornerRadius="8"
+                                    BackgroundColor="{StaticResource Edge}"
+                                    TextColor="{StaticResource Ink}"
+                                    Command="{Binding RemoveCommand}" />
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+            <CollectionView.EmptyView>
+                <Label Style="{StaticResource MvvmNote}" Text="No tasks left. Add one above." />
+            </CollectionView.EmptyView>
+        </CollectionView>
+
+        <Label AutomationId="task-status"
+               Text="{Binding Status}"
+               Style="{StaticResource MvvmNote}" />
+
+    </VerticalStackLayout>
+
+</ContentView>
