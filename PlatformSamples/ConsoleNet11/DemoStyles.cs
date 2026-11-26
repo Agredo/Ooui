@@ -1,4 +1,4 @@
-namespace ConsoleNet6;
+namespace ConsoleNet11;
 
 static class DemoStyles
 {

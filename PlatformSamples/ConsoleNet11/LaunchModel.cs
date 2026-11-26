@@ -1,7 +1,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace ConsoleNet6;
+namespace ConsoleNet11;
 
 sealed class LaunchModel : INotifyPropertyChanged
 {

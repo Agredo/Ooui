@@ -21,7 +21,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ooui.Maui", "Ooui.Maui\Ooui
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ooui.Maui.Tests", "Ooui.Maui.Tests\Ooui.Maui.Tests.csproj", "{FE24623A-128D-4431-9E21-8014642FB33B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleNet6", "PlatformSamples\ConsoleNet6\ConsoleNet6.csproj", "{938B3181-D943-4126-BECB-1483DEFF0D72}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleNet11", "PlatformSamples\ConsoleNet11\ConsoleNet11.csproj", "{938B3181-D943-4126-BECB-1483DEFF0D72}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetCoreMaui", "PlatformSamples\AspNetCoreMaui\AspNetCoreMaui.csproj", "{2669E7AE-6BC6-4DE2-B2AF-9070E23922DF}"
 EndProject

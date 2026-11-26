@@ -9,7 +9,7 @@
             "command": "dotnet",
             "args": [
                 "build",
-                "${workspaceRoot}/PlatformSamples/ConsoleNet6/ConsoleNet6.csproj"
+                "${workspaceRoot}/PlatformSamples/ConsoleNet11/ConsoleNet11.csproj"
             ],
             "problemMatcher": "$msCompile",
             "group": "build"

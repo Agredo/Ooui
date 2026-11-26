@@ -74,7 +74,7 @@ Thread.Sleep(Timeout.Infinite);
 Run the included interactive showcase and open <http://localhost:8080/>. It demonstrates data binding, validation and focus, form editing and reset, save/busy feedback, activity filtering, scrolling, responsive cards, and independent browser sessions:
 
 ```bash
-dotnet run --project PlatformSamples/ConsoleNet6/ConsoleNet6.csproj
+dotnet run --project PlatformSamples/ConsoleNet11/ConsoleNet11.csproj
 ```
 
 Each WebSocket connection creates its own window and view hierarchy. Closing the connection disconnects the handlers and destroys that window. Shared application services are still shared, so per-user state belongs in the window or page rather than in singleton services.

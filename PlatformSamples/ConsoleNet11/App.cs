@@ -2,7 +2,7 @@ using Microsoft.Maui;
 using Microsoft.Maui.Controls;
 using Application = Microsoft.Maui.Controls.Application;
 
-namespace ConsoleNet6;
+namespace ConsoleNet11;
 
 public class App : Application
 {
