@@ -1,4 +1,4 @@
-// Ooui v1.0.0
+﻿// Ooui v1.0.0
 
 var debug = false;
 
@@ -6,7 +6,7 @@ let nodes = {};
 let hasText = {};
 
 let socket = null;
-let wasmSession = null;
+let wasmSend = null;
 
 let lastRootElementPath = "";
 
@@ -15,8 +15,8 @@ function send (json) {
     if (socket != null) {
         socket.send (json);
     }
-    else if (wasmSession != null) {
-        WebAssemblyApp.receiveMessagesJson (wasmSession, json);
+    else if (wasmSend != null) {
+        wasmSend (json);
     }
 }
 
@@ -110,6 +110,9 @@ function connectWebSocket() {
     rootElementPath = lastRootElementPath;
     if (rootElementPath.length === 0)
         return;
+    // In WebAssembly mode the page already talks to the runtime, there is no server to connect to.
+    if (wasmSend != null)
+        return;
 
     console.log("Initializing Ooui web socket");
 
@@ -168,15 +171,6 @@ function connectWebSocket() {
     console.log("Web socket created");
 
     monitorSizeChanges (1000/10);
-}
-
-function oouiWasm (mainAsmName, mainNamespace, mainClassName, mainMethodName, assemblies)
-{
-    Module.entryPoint = { "a": mainAsmName, "n": mainNamespace, "t": mainClassName, "m": mainMethodName };
-    Module.assemblies = assemblies;
-
-    initializeNavigation();
-    monitorSizeChanges (1000/30);
 }
 
 function monitorHashChanged() {
@@ -450,168 +444,59 @@ function fixupValue (v) {
     return v;
 }
 
-// == WASM Support ==
 
-window["__oouiReceiveMessages"] = function (sessionId, messages)
-{
-    if (debug) console.log ("WebAssembly Receive", messages);
-    if (wasmSession != null) {
-        messages.forEach (function (m) {
-            // console.log ('Raw value from server', m.v);
+// == WebAssembly Support ==
+//
+// When Ooui runs entirely in the browser (net11.0-browser / dotnet.native.wasm) there is no
+// web socket. The .NET side pushes serialized messages through the JSImport binding
+// "globalThis.oouiWasm.receiveMessages", and the page pushes user input back through the
+// [JSExport] methods handed to oouiWasm.start.
+
+const oouiWasm = {
+    sessionId: null,
+    exports: null,
+    started: false,
+
+    // Called by the host page once the .NET runtime is up and the exports are available.
+    // exports must provide StartSession(sessionId, path, size) and ReceiveMessageJson(sessionId, json).
+    start (exports, sessionId) {
+        if (this.started)
+            return;
+        this.exports = exports;
+        this.sessionId = sessionId || "main";
+
+        // Register the receive path before starting the session so that the very first
+        // messages (document.body appendChild) can already be delivered.
+        this.started = true;
+        wasmSend = function (json) {
+            exports.ReceiveMessageJson (oouiWasm.sessionId, json);
+        };
+
+        const size = getSize ();
+        saveSize (size);
+        lastRootElementPath = "/";
+        exports.StartSession (this.sessionId, "/", Math.round (size.width) + " " + Math.round (size.height));
+
+        initializeNavigation ();
+        monitorSizeChanges (1000 / 30);
+
+        const loading = document.getElementById ("loading");
+        if (loading)
+            loading.hidden = true;
+    },
+
+    // Called from .NET: receives a JSON array of messages created by the server side session.
+    receiveMessages (sessionId, json) {
+        if (debug) console.log ("WebAssembly Receive", json);
+        if (!json)
+            return;
+        const messages = JSON.parse (json);
+        for (let i = 0; i < messages.length; i++) {
+            const m = messages[i];
             m.v = fixupValue (m.v);
             processMessage (m);
-        });
-    }
-};
-
-var Module = {
-    onRuntimeInitialized: function () {
-        if (debug) console.log ("Done with WASM module instantiation.");
-
-        Module.FS_createPath ("/", "managed", true, true);
-
-        var pending = 0;
-        var mangled_ext_re = new RegExp("\\.bin$");
-        this.assemblies.forEach (function(asm_mangled_name) {
-            var asm_name = asm_mangled_name.replace (mangled_ext_re, ".dll");
-            if (debug) console.log ("Loading", asm_name);
-            ++pending;
-            fetch ("managed/" + asm_mangled_name, { credentials: 'same-origin' }).then (function (response) {
-                if (!response.ok)
-                    throw "failed to load Assembly '" + asm_name + "'";
-                return response['arrayBuffer']();
-            }).then (function (blob) {
-                var asm = new Uint8Array (blob);
-                Module.FS_createDataFile ("managed/" + asm_name, null, asm, true, true, true);
-                --pending;
-                if (pending == 0)
-                    Module.bclLoadingDone ();
-            });
-        });
-    },
-
-    bclLoadingDone: function () {
-        if (debug) console.log ("Done loading the BCL.");
-        MonoRuntime.init ();
-    }
-};
-
-var MonoRuntime = {
-    init: function () {
-        this.load_runtime = Module.cwrap ('mono_wasm_load_runtime', null, ['string', 'number']);
-        this.assembly_load = Module.cwrap ('mono_wasm_assembly_load', 'number', ['string']);
-        this.find_class = Module.cwrap ('mono_wasm_assembly_find_class', 'number', ['number', 'string', 'string']);
-        this.find_method = Module.cwrap ('mono_wasm_assembly_find_method', 'number', ['number', 'string', 'number']);
-        this.invoke_method = Module.cwrap ('mono_wasm_invoke_method', 'number', ['number', 'number', 'number']);
-        this.mono_string_get_utf8 = Module.cwrap ('mono_wasm_string_get_utf8', 'number', ['number']);
-        this.mono_string = Module.cwrap ('mono_wasm_string_from_js', 'number', ['string']);
-
-        this.load_runtime ("managed", 1);
-
-        if (debug) console.log ("Done initializing the runtime.");
-
-        WebAssemblyApp.init ();
-    },
-
-    conv_string: function (mono_obj) {
-        if (mono_obj == 0)
-            return null;
-        var raw = this.mono_string_get_utf8 (mono_obj);
-        var res = Module.UTF8ToString (raw);
-        Module._free (raw);
-
-        return res;
-    },
-
-    call_method: function (method, this_arg, args) {
-        var args_mem = Module._malloc (args.length * 4);
-        var eh_throw = Module._malloc (4);
-        for (var i = 0; i < args.length; ++i)
-            Module.setValue (args_mem + i * 4, args [i], "i32");
-        Module.setValue (eh_throw, 0, "i32");
-
-        var res = this.invoke_method (method, this_arg, args_mem, eh_throw);
-
-        var eh_res = Module.getValue (eh_throw, "i32");
-
-        Module._free (args_mem);
-        Module._free (eh_throw);
-
-        if (eh_res != 0) {
-            var msg = this.conv_string (res);
-            throw new Error (msg);
-        }
-
-        return res;
-    },
-};
-
-var WebAssemblyApp = {
-    init: function () {
-        this.loading = document.getElementById ("loading");
-
-        this.findMethods ();
-
-        this.runApp ("1", "2");
-
-        this.loading.hidden = true;
-    },
-
-    runApp: function (a, b) {
-        try {
-            var sessionId = "main";
-            if (!!this.ooui_DisableServer_method) {
-                MonoRuntime.call_method (this.ooui_DisableServer_method, null, []);
-            }
-            MonoRuntime.call_method (this.main_method, null, [MonoRuntime.mono_string (a), MonoRuntime.mono_string (b)]);
-            wasmSession = sessionId;
-            if (!!this.ooui_StartWebAssemblySession_method) {
-                var initialSize = getSize ();
-                MonoRuntime.call_method (this.ooui_StartWebAssemblySession_method, null, [MonoRuntime.mono_string (sessionId), MonoRuntime.mono_string ("/"), MonoRuntime.mono_string (Math.round(initialSize.width) + " " + Math.round(initialSize.height))]);
-            }
-        } catch (e) {
-            console.error(e);
-        }
-    },
-
-    receiveMessagesJson: function (sessionId, json) {
-        if (!!this.ooui_ReceiveWebAssemblySessionMessageJson_method) {
-            MonoRuntime.call_method (this.ooui_ReceiveWebAssemblySessionMessageJson_method, null, [MonoRuntime.mono_string (sessionId), MonoRuntime.mono_string (json)]);
-        }
-    },
-
-    findMethods: function () {
-        this.main_module = MonoRuntime.assembly_load (Module.entryPoint.a);
-        if (!this.main_module)
-            throw "Could not find Main Module " + Module.entryPoint.a + ".dll";
-
-        this.main_class = MonoRuntime.find_class (this.main_module, Module.entryPoint.n, Module.entryPoint.t)
-        if (!this.main_class)
-            throw "Could not find Program class in main module";
-
-        this.main_method = MonoRuntime.find_method (this.main_class, Module.entryPoint.m, -1)
-        if (!this.main_method)
-            throw "Could not find Main method";
-
-        this.ooui_module = MonoRuntime.assembly_load ("Ooui");
-        if (!!this.ooui_module) {
-
-            this.ooui_class = MonoRuntime.find_class (this.ooui_module, "Ooui", "UI");
-            if (!this.ooui_class)
-                throw "Could not find UI class in Ooui module";
-
-            this.ooui_DisableServer_method = MonoRuntime.find_method (this.ooui_class, "DisableServer", -1);
-            if (!this.ooui_DisableServer_method)
-                throw "Could not find DisableServer method";
-
-            this.ooui_StartWebAssemblySession_method = MonoRuntime.find_method (this.ooui_class, "StartWebAssemblySession", -1);
-            if (!this.ooui_StartWebAssemblySession_method)
-                throw "Could not find StartWebAssemblySession method";
-
-            this.ooui_ReceiveWebAssemblySessionMessageJson_method = MonoRuntime.find_method (this.ooui_class, "ReceiveWebAssemblySessionMessageJson", -1);
-            if (!this.ooui_ReceiveWebAssemblySessionMessageJson_method)
-                throw "Could not find ReceiveWebAssemblySessionMessageJson method";
         }
     },
 };
 
+globalThis.oouiWasm = oouiWasm;

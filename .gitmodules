@@ -1,3 +1,0 @@
-[submodule "Ooui.Wasm.Build.Tasks/linker"]
-	path = Ooui.Wasm.Build.Tasks/linker
-	url = https://github.com/mono/linker.git

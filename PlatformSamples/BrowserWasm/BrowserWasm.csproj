@@ -1,0 +1,62 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net11.0</TargetFramework>
+    <RuntimeIdentifier>browser-wasm</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <UseMonoRuntime>true</UseMonoRuntime>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <RootNamespace>BrowserWasm</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <WasmMainJSPath>wwwroot\main.js</WasmMainJSPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Ooui\Ooui.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <WebAsset Include="wwwroot\index.html" />
+    <WebAsset Include="wwwroot\main.js" />
+  </ItemGroup>
+
+  <!-- The WebAssembly SDK has no deployment hook for plain web assets, so the static
+       files are copied next to the runtime assets in the publish output. -->
+  <Target Name="DeployWebAssets" AfterTargets="Publish">
+    <Copy SourceFiles="@(WebAsset)" DestinationFolder="$(PublishDir)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="..\..\Ooui\Client.js" DestinationFiles="$(PublishDir)ooui-client.js" SkipUnchangedFiles="true" />
+  </Target>
+
+  <!-- .NET 11 no longer emits a boot manifest for plain Wasm apps (the WebAssembly SDK only builds
+       the runtime assets; dotnet.boot.js was dropped). dotnet.js therefore needs the resource list
+       handed over explicitly, so it is generated here from the actual publish output. -->
+  <Target Name="GenerateWasmBootConfig" AfterTargets="DeployWebAssets">
+    <ItemGroup>
+      <_WasmAppAssembly Include="$(PublishDir)*.dll" />
+    </ItemGroup>
+    <PropertyGroup>
+      <_WasmAppAssemblyList>@(_WasmAppAssembly->'{&quot;name&quot;:&quot;%(Filename)%(Extension)&quot;}', ',')</_WasmAppAssemblyList>
+      <_WasmBootJson>{&quot;mainAssemblyName&quot;:&quot;$(AssemblyName)&quot;,&quot;globalizationMode&quot;:&quot;sharded&quot;,&quot;resources&quot;:{&quot;wasmNative&quot;:[{&quot;name&quot;:&quot;dotnet.native.wasm&quot;}],&quot;jsModuleNative&quot;:[{&quot;name&quot;:&quot;dotnet.native.js&quot;}],&quot;jsModuleRuntime&quot;:[{&quot;name&quot;:&quot;dotnet.runtime.js&quot;}],&quot;icu&quot;:[{&quot;name&quot;:&quot;icudt.dat&quot;,&quot;virtualPath&quot;:&quot;icudt.dat&quot;},{&quot;name&quot;:&quot;icudt_EFIGS.dat&quot;,&quot;virtualPath&quot;:&quot;icudt_EFIGS.dat&quot;},{&quot;name&quot;:&quot;icudt_CJK.dat&quot;,&quot;virtualPath&quot;:&quot;icudt_CJK.dat&quot;},{&quot;name&quot;:&quot;icudt_no_CJK.dat&quot;,&quot;virtualPath&quot;:&quot;icudt_no_CJK.dat&quot;}],&quot;coreAssembly&quot;:[$(_WasmAppAssemblyList)]}}</_WasmBootJson>
+    </PropertyGroup>
+    <WriteLinesToFile File="$(PublishDir)wasm-boot.json" Lines="$(_WasmBootJson)" Overwrite="true" WriteOnlyWhenDifferent="true" />
+    <Message Importance="high" Text="BrowserWasm: wasm-boot.json mit @(_WasmAppAssembly->Count()) Assemblies erzeugt." />
+  </Target>
+
+  <!-- The runtime pack copies its native build inputs (.a/.c/.h) to the output as well; they are
+       useless for the browser and only bloat the deployed folder. -->
+  <Target Name="PruneWasmPublishOutput" AfterTargets="GenerateWasmBootConfig">
+    <ItemGroup>
+      <_WasmBuildInput Include="$(PublishDir)**\*" />
+      <_WasmBuildInput Remove="$(PublishDir)**\*.dll" />
+      <_WasmBuildInput Remove="$(PublishDir)**\*.js" />
+      <_WasmBuildInput Remove="$(PublishDir)**\*.wasm" />
+      <_WasmBuildInput Remove="$(PublishDir)**\*.dat" />
+      <_WasmBuildInput Remove="$(PublishDir)**\*.html" />
+      <_WasmBuildInput Remove="$(PublishDir)**\*.json" />
+    </ItemGroup>
+    <Delete Files="@(_WasmBuildInput)" />
+  </Target>
+
+</Project>

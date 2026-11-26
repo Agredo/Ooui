@@ -36,25 +36,23 @@ namespace Ooui
             if (messagesToSend.Count == 0)
                 return;
 
+            var sendMessages = WebAssemblyRuntime.SendMessages;
+            if (sendMessages == null)
+                throw new InvalidOperationException ("No web assembly bridge is configured. Set WebAssemblyRuntime.SendMessages before starting a web assembly session.");
+
             //
             // Now actually send the messages
             //
             var sb = new System.IO.StringWriter ();
-            sb.Write ("__oouiReceiveMessages(\"");
-            sb.Write (id);
-            sb.Write ("\",");
             sb.Write ("[");
             var head = "";
-            int n = 0;
-            for (var i = startIndex; i < messagesToSend.Count && n < max; i++, n++) {
+            for (var i = startIndex; i < messagesToSend.Count && i - startIndex < max; i++) {
                 sb.Write (head);
                 messagesToSend[i].WriteJson (sb);
                 head = ",";
             }
-            sb.Write ("])");
-            var jsonp = sb.ToString ();
-            // WebAssembly.Runtime.InvokeJS("console.log('TRANSMIT',"+n+")");
-            WebAssembly.Runtime.InvokeJS (jsonp);
+            sb.Write ("]");
+            sendMessages (id, sb.ToString ());
         }
 
         public void ReceiveMessageJson (string json)
@@ -88,20 +86,6 @@ namespace Ooui
         public void StopSession ()
         {
             element.MessageSent -= handleElementMessageSent;
-        }
-    }
-}
-
-namespace WebAssembly
-{
-    public sealed class Runtime
-    {
-        [System.Runtime.CompilerServices.MethodImplAttribute ((System.Runtime.CompilerServices.MethodImplOptions)4096)]
-        static extern string InvokeJS (string str, out int exceptional_result);
-
-        public static string InvokeJS (string str)
-        {
-            return InvokeJS (str, out var _);
         }
     }
 }

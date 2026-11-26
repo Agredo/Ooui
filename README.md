@@ -8,7 +8,7 @@
 | [![NuGet Package](https://img.shields.io/nuget/v/Ooui.AspNetCore.svg)](https://www.nuget.org/packages/Ooui.AspNetCore) | [Ooui.AspNetCore](https://www.nuget.org/packages/Ooui.AspNetCore) | Integration with ASP.NET Core (`net11.0` in this fork) |
 | [![NuGet Package](https://img.shields.io/nuget/v/Ooui.Forms.svg)](https://www.nuget.org/packages/Ooui.Forms) | [Ooui.Forms](https://www.nuget.org/packages/Ooui.Forms) | Xamarin.Forms backend using Ooui ([Status](Documentation/OouiFormsStatus.md)) |
 | `Ooui.Maui` (experimental, source only) | [Ooui.Maui](Ooui.Maui/Ooui.Maui.csproj) | Experimental .NET MAUI 11 browser backend |
-| [![NuGet Package](https://img.shields.io/nuget/v/Ooui.Wasm.svg)](https://www.nuget.org/packages/Ooui.Wasm) | [Ooui.Wasm](https://www.nuget.org/packages/Ooui.Wasm) | Package your app into a web assembly (not built on this branch, see below) |
+| `BrowserWasm` (sample, source only) | [BrowserWasm](PlatformSamples/BrowserWasm/BrowserWasm.csproj) | Runs Ooui completely in the browser on `browser-wasm` (replaces the retired `Ooui.Wasm`) |
 
 Ooui (pronounced *weee!*) is a small cross-platform UI library for .NET that uses web technologies.
 
@@ -19,7 +19,7 @@ It presents a classic object-oriented UI API that controls a dumb browser. With 
 
 Head on over to [http://ooui.mecha.parts](http://ooui.mecha.parts) to tryout the samples.
 
-You can also load [https://s3.amazonaws.com/praeclarum.org/wasm/index.html](https://s3.amazonaws.com/praeclarum.org/wasm/index.html) to try the WebAssembly mode of Ooui running Xamarin.Forms. (That's Xamarin.Forms running right in your browser!)
+There is also a pure browser build: `PlatformSamples/BrowserWasm` compiles the Ooui page into WebAssembly, so the UI runs in the tab without any server. See [Browser WebAssembly](#browser-webassembly) below.
 
 
 ## Try the Samples Locally
@@ -45,12 +45,20 @@ dotnet build Ooui.sln
 dotnet test Ooui.sln
 ```
 
-`Ooui.Wasm.Build.Tasks` is excluded from the solution: it compiles the vendored `mono/linker` sources from an uninitialised git submodule and cannot build without it. Initialise the submodule and add the project back if you need the legacy web assembly packaging:
+
+## Browser WebAssembly
+
+`PlatformSamples/BrowserWasm` runs a complete Ooui session inside the browser on `net11.0`/`browser-wasm`. It replaces the old `Ooui.Wasm` packaging, which depended on the retired mono-wasm SDK and a `mono/linker` submodule. Messages leave the .NET side through `Ooui\WebAssemblyRuntime.cs` and arrive in the page as `globalThis.oouiWasm.receiveMessages`, so the same Ooui element tree and message protocol run server-hosted or in the tab.
 
 ```bash
-git submodule update --init Ooui.Wasm.Build.Tasks/linker
-dotnet sln Ooui.sln add Ooui.Wasm.Build.Tasks/Ooui.Wasm.Build.Tasks.csproj
+dotnet publish PlatformSamples/BrowserWasm/BrowserWasm.csproj -c Release
+cd PlatformSamples/BrowserWasm/bin/Release/net11.0/browser-wasm/publish
+python -m http.server 8095 --bind 127.0.0.1
 ```
+
+Open <http://localhost:8095/>. Publish output cannot be opened via `file://`, because the runtime loads its assemblies with `fetch`.
+
+The build generates `wasm-boot.json` next to the runtime assets: .NET 11 no longer emits a boot manifest for plain Wasm apps, so the resource list (`dotnet.native.wasm`, `dotnet.native.js`, `dotnet.runtime.js`, ICU data and the application assemblies) is written from the publish output and handed to `dotnet.withConfig` in `wwwroot/main.js`. The `PruneWasmPublishOutput` target drops the native build inputs (`.a`, `.c`, `.h`, maps and symbols) that the runtime pack copies to `publish`.
 
 
 ## .NET MAUI 11 (experimental)
@@ -270,7 +278,7 @@ With just that code, a web server that serves the HTML and web socket logic nece
 Ooui has been broken up into several packages to increase the variety of ways that it can be used. Here are some combinations to help you decide which way is best for you.
 
 <table>
-<thead><tr><th>Ooui</th><th>Ooui.AspNetCore</th><th>Ooui.Forms</th><th>Ooui.Wasm</th><th></th></tr></thead>
+<thead><tr><th>Ooui</th><th>Ooui.AspNetCore</th><th>Ooui.Forms</th><th>WebAssembly</th><th></th></tr></thead>
 
 <tr>
 <td>&check;</td><td></td><td></td><td></td><td><a href="https://github.com/praeclarum/Ooui/wiki/Web-DOM-with-the-Built-in-Web-Server">Web DOM with the Built-in Web Server</a></td>
@@ -289,11 +297,7 @@ Ooui has been broken up into several packages to increase the variety of ways th
 </tr>
 
 <tr>
-<td>&check;</td><td></td><td></td><td>&check;</td><td><a href="https://github.com/praeclarum/Ooui/wiki/Web DOM-with-Web-Assembly">Web DOM with Web Assembly</a></td>
-</tr>
-
-<tr>
-<td>&check;</td><td></td><td>&check;</td><td>&check;</td><td><a href="https://github.com/praeclarum/Ooui/wiki/Xamarin.Forms-with-Web-Assembly">Xamarin.Forms with Web Assembly</a></td>
+<td>&check;</td><td></td><td></td><td>&check;</td><td><a href="PlatformSamples/BrowserWasm/BrowserWasm.csproj">Web DOM in the browser (BrowserWasm)</a></td>
 </tr>
 
 </table>

@@ -25,6 +25,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleNet11", "PlatformSam
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetCoreMaui", "PlatformSamples\AspNetCoreMaui\AspNetCoreMaui.csproj", "{2669E7AE-6BC6-4DE2-B2AF-9070E23922DF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BrowserWasm", "PlatformSamples\BrowserWasm\BrowserWasm.csproj", "{AF8DEE4D-87B1-4356-B9B7-547814507C4B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -155,6 +157,18 @@ Global
 		{2669E7AE-6BC6-4DE2-B2AF-9070E23922DF}.Release|x64.Build.0 = Release|Any CPU
 		{2669E7AE-6BC6-4DE2-B2AF-9070E23922DF}.Release|x86.ActiveCfg = Release|Any CPU
 		{2669E7AE-6BC6-4DE2-B2AF-9070E23922DF}.Release|x86.Build.0 = Release|Any CPU
+		{AF8DEE4D-87B1-4356-B9B7-547814507C4B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AF8DEE4D-87B1-4356-B9B7-547814507C4B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AF8DEE4D-87B1-4356-B9B7-547814507C4B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{AF8DEE4D-87B1-4356-B9B7-547814507C4B}.Debug|x64.Build.0 = Debug|Any CPU
+		{AF8DEE4D-87B1-4356-B9B7-547814507C4B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{AF8DEE4D-87B1-4356-B9B7-547814507C4B}.Debug|x86.Build.0 = Debug|Any CPU
+		{AF8DEE4D-87B1-4356-B9B7-547814507C4B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AF8DEE4D-87B1-4356-B9B7-547814507C4B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AF8DEE4D-87B1-4356-B9B7-547814507C4B}.Release|x64.ActiveCfg = Release|Any CPU
+		{AF8DEE4D-87B1-4356-B9B7-547814507C4B}.Release|x64.Build.0 = Release|Any CPU
+		{AF8DEE4D-87B1-4356-B9B7-547814507C4B}.Release|x86.ActiveCfg = Release|Any CPU
+		{AF8DEE4D-87B1-4356-B9B7-547814507C4B}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -163,6 +177,7 @@ Global
 		{7C6D477C-3378-4A86-9C31-AAD51204120B} = {12ADF328-BBA8-48FC-9AF1-F11B7921D9EA}
 		{938B3181-D943-4126-BECB-1483DEFF0D72} = {12ADF328-BBA8-48FC-9AF1-F11B7921D9EA}
 		{2669E7AE-6BC6-4DE2-B2AF-9070E23922DF} = {12ADF328-BBA8-48FC-9AF1-F11B7921D9EA}
+		{AF8DEE4D-87B1-4356-B9B7-547814507C4B} = {12ADF328-BBA8-48FC-9AF1-F11B7921D9EA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9370DD6D-816D-4E0F-8356-835F65DCF3AA}
