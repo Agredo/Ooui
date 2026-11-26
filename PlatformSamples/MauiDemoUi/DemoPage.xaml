@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiDemoUi.DemoPage"
+             Title="MAUI on Ooui">
+
+    <ContentPage.Resources>
+        <Color x:Key="Ink">#eef2f9</Color>
+        <Color x:Key="Muted">#8492aa</Color>
+        <Color x:Key="Accent">#8f7dff</Color>
+        <Color x:Key="Strong">#6854d9</Color>
+        <Color x:Key="Sunken">#101a2b</Color>
+        <Color x:Key="Edge">#253350</Color>
+
+        <Style x:Key="Heading" TargetType="Label">
+            <Setter Property="TextColor" Value="{StaticResource Ink}" />
+            <Setter Property="FontSize" Value="18" />
+            <Setter Property="FontAttributes" Value="Bold" />
+        </Style>
+
+        <Style x:Key="Note" TargetType="Label">
+            <Setter Property="TextColor" Value="{StaticResource Muted}" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="VerticalOptions" Value="Center" />
+        </Style>
+
+        <Style x:Key="ActionButton" TargetType="Button">
+            <Setter Property="TextColor" Value="White" />
+            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="HeightRequest" Value="42" />
+            <Setter Property="Padding" Value="18,0" />
+        </Style>
+    </ContentPage.Resources>
+
+    <ScrollView>
+        <VerticalStackLayout Padding="8" Spacing="12">
+
+            <Border BackgroundColor="{StaticResource Sunken}"
+                    Stroke="{StaticResource Edge}"
+                    StrokeThickness="1"
+                    Padding="14,7"
+                    HorizontalOptions="Start">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="999" />
+                </Border.StrokeShape>
+                <Label x:Name="RenderModeLabel"
+                       AutomationId="render-mode"
+                       TextColor="{StaticResource Accent}"
+                       FontSize="12"
+                       CharacterSpacing="1.6" />
+            </Border>
+
+            <Label AutomationId="title"
+                   Text="Microsoft.Maui.Controls, rendered by Ooui"
+                   TextColor="{StaticResource Ink}"
+                   FontSize="26"
+                   FontAttributes="Bold" />
+
+            <Label x:Name="ModeNoteLabel"
+                   TextColor="{StaticResource Muted}"
+                   FontSize="15"
+                   LineHeight="1.4" />
+
+            <Label x:Name="CounterLabel"
+                   AutomationId="counter"
+                   Text="0"
+                   TextColor="{StaticResource Accent}"
+                   FontSize="44"
+                   HorizontalOptions="Center" />
+
+            <HorizontalStackLayout Spacing="12" HorizontalOptions="Center">
+                <Button AutomationId="increment"
+                        Text="Increment"
+                        Style="{StaticResource ActionButton}"
+                        BackgroundColor="{StaticResource Strong}"
+                        Clicked="OnIncrementClicked" />
+                <Button AutomationId="reset"
+                        Text="Reset"
+                        Style="{StaticResource ActionButton}"
+                        BackgroundColor="{StaticResource Sunken}"
+                        TextColor="{StaticResource Ink}"
+                        Clicked="OnResetClicked" />
+            </HorizontalStackLayout>
+
+            <Label Text="Two-way binding" Style="{StaticResource Heading}" />
+
+            <Entry x:Name="NameEntry"
+                   AutomationId="name"
+                   Placeholder="Your name"
+                   TextChanged="OnNameChanged" />
+
+            <Label x:Name="GreetingLabel"
+                   AutomationId="greeting"
+                   Text="Type your name"
+                   TextColor="{StaticResource Muted}"
+                   HorizontalOptions="Center" />
+
+            <Label Text="More handlers" Style="{StaticResource Heading}" />
+
+            <Grid ColumnSpacing="16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <ProgressBar Grid.Column="0" Progress="0.6" VerticalOptions="Center" />
+                <ActivityIndicator Grid.Column="1"
+                                   IsRunning="True"
+                                   Color="{StaticResource Accent}"
+                                   VerticalOptions="Center" />
+            </Grid>
+
+            <HorizontalStackLayout Spacing="12">
+                <Switch x:Name="ToggleSwitch" Toggled="OnToggled" />
+                <Label x:Name="SwitchNoteLabel"
+                       AutomationId="switch-note"
+                       Text="Switch is on"
+                       Style="{StaticResource Note}" />
+            </HorizontalStackLayout>
+
+            <Slider x:Name="SliderControl" ValueChanged="OnSliderChanged" />
+
+            <Label x:Name="SliderNoteLabel"
+                   AutomationId="slider-note"
+                   Text="Slider at 0.35"
+                   Style="{StaticResource Note}" />
+
+            <HorizontalStackLayout Spacing="12">
+                <CheckBox x:Name="CheckControl" CheckedChanged="OnCheckedChanged" />
+                <Label x:Name="CheckNoteLabel"
+                       AutomationId="check-note"
+                       Text="CheckBox is off"
+                       Style="{StaticResource Note}" />
+            </HorizontalStackLayout>
+
+            <BoxView Color="{StaticResource Strong}" HeightRequest="4" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

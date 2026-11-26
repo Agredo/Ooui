@@ -256,6 +256,8 @@ Two limits are worth knowing: the store lives in the memory of one process, so s
 
 The page itself lives in `PlatformSamples/MauiDemoUi` — a plain `net11.0`/`UseMaui` library with no Ooui and no host reference. Both hosts project-reference it and only pass a `renderMode` string, which the page shows in its badge. Everything else is identical, which is the point: no HTML, no JavaScript, no per-host view code.
 
+The page is written in **XAML** (`MauiDemoUi/DemoPage.xaml` plus a code-behind for the handlers), so the input format is XAML, the view objects are MAUI controls, and the output is HTML — once produced by Kestrel, once by WebAssembly. Any XAML page whose controls have an `Ooui.Maui` handler works the same way; the controls used here are `Label`, `Button`, `Entry`, `Switch`, `Slider`, `CheckBox`, `Border`, `ScrollView` and the stack layouts.
+
 ```bash
 # the bundle first, because no build of the host can produce it (it needs a Wasm runtime identifier)
 dotnet publish PlatformSamples/BrowserWasmMaui/BrowserWasmMaui.csproj -c Release
