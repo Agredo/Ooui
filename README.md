@@ -371,7 +371,7 @@ The site root is `.github/pages/index.html`, and each bundle is copied into its 
 
 Only the browser builds can be hosted this way — `Sample.Ooui.AspNetCore`, `Sample.Ooui.AspNetCoreWasm`, `AspNetCoreMaui`, `AspNetCoreMauiWasm`, `AspNetCoreMvc` and `ConsoleNet11` need a process, so the landing page lists them with the `dotnet run` command that starts them. Publishing needs no workload on the runner: the MAUI SDK arrives through the `Microsoft.Maui.Controls` package reference.
 
-To turn it on, enable Pages once in the repository settings (Settings → Pages → Source: **GitHub Actions**); the workflow cannot do that itself. To reproduce the site locally:
+To turn it on, enable Pages once in the repository settings (Settings → Pages → Source: **GitHub Actions**); the workflow cannot do that itself. A branch other than `master` also needs an entry in the `github-pages` environment's deployment branch policy, otherwise the deploy step is rejected after a successful build. To reproduce the site locally:
 
 ```bash
 dotnet publish PlatformSamples/SampleApp/Sample.Ooui.Wasm/Sample.Ooui.Wasm.csproj -c Release -o site/ooui-maui
