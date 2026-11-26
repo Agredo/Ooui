@@ -23,6 +23,8 @@ Head on over to [http://ooui.mecha.parts](http://ooui.mecha.parts) to tryout the
 
 There is also a pure browser build: `PlatformSamples/BrowserWasm` compiles the Ooui page into WebAssembly, so the UI runs in the tab without any server. See [Browser WebAssembly](#browser-webassembly) below.
 
+The WebAssembly samples are also published to GitHub Pages on every push: [agredo.github.io/Ooui](https://agredo.github.io/Ooui/). See [The samples on GitHub Pages](#the-samples-on-github-pages).
+
 
 ## Try the Samples Locally
 
@@ -354,6 +356,30 @@ Two details are worth knowing if you build your own host:
 - **Per-request view models.** `SamplePages.CreateSessionRoot (services, counter)` builds the `NavigationPage` *and* the navigator that pushes onto it (`ActivatorUtilities.CreateInstance` passes the request's counter service into both the page's view model and the pushed one). The live hosts use `CreateRootPage (services)` and let DI do the same job.
 
 Verified in Chromium with Playwright on every path: the counter increments, `DetailsPage` is pushed and popped, the hash follows the stack, no JavaScript errors — and on ASP.NET Core the counter survives a full page reload.
+
+### The samples on GitHub Pages
+
+`.github/workflows/pages.yml` publishes every WebAssembly sample to GitHub Pages on each push:
+
+| Path | Sample |
+| --- | --- |
+| `/ooui-maui/` | `Sample.Ooui.Wasm` — the four-project MAUI app |
+| `/browser-wasm-maui/` | `BrowserWasmMaui` — the MAUI demo page |
+| `/browser-wasm/` | `BrowserWasm` — Ooui without MAUI |
+
+The site root is `.github/pages/index.html`, and each bundle is copied into its own folder, so the samples are served from a subpath exactly as a project page does (`https://agredo.github.io/Ooui/`). That works because the bundles reference their scripts relatively (`ooui-client.js`, `main.js`) and talk to no server. `.nojekyll` keeps Jekyll away from the hundreds of bundle files.
+
+Only the browser builds can be hosted this way — `Sample.Ooui.AspNetCore`, `Sample.Ooui.AspNetCoreWasm`, `AspNetCoreMaui`, `AspNetCoreMauiWasm`, `AspNetCoreMvc` and `ConsoleNet11` need a process, so the landing page lists them with the `dotnet run` command that starts them. Publishing needs no workload on the runner: the MAUI SDK arrives through the `Microsoft.Maui.Controls` package reference.
+
+To turn it on, enable Pages once in the repository settings (Settings → Pages → Source: **GitHub Actions**); the workflow cannot do that itself. To reproduce the site locally:
+
+```bash
+dotnet publish PlatformSamples/SampleApp/Sample.Ooui.Wasm/Sample.Ooui.Wasm.csproj -c Release -o site/ooui-maui
+dotnet publish PlatformSamples/BrowserWasmMaui/BrowserWasmMaui.csproj -c Release -o site/browser-wasm-maui
+dotnet publish PlatformSamples/BrowserWasm/BrowserWasm.csproj -c Release -o site/browser-wasm
+cp .github/pages/index.html site/index.html && touch site/.nojekyll
+python -m http.server 8104 --directory site
+```
 
 ## Example App
 

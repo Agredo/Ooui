@@ -1,0 +1,83 @@
+name: Pages
+
+# Only the WebAssembly samples can be hosted on GitHub Pages: they are static files that run in the
+# tab. The ASP.NET Core and console samples need a process and are therefore not part of the site;
+# the landing page lists them with the command that starts them.
+on:
+  push:
+    branches: [ master, maui-11-port ]
+    paths:
+      - '.github/pages/**'
+      - '.github/workflows/pages.yml'
+      - 'Ooui/**'
+      - 'Ooui.Maui/**'
+      - 'PlatformSamples/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# A deploy must not run twice at the same time, but a queued run may still replace a newer one.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 11.0.x
+
+      # The MAUI SDK arrives through the Microsoft.Maui.Controls package and the WebAssembly packs
+      # come from NuGet, so the workload resolver is off and no workload is installed here: the
+      # projects publish on a clean runner.
+      - name: Publish the MAUI sample as WebAssembly
+        run: >
+          dotnet publish PlatformSamples/SampleApp/Sample.Ooui.Wasm/Sample.Ooui.Wasm.csproj
+          -c Release -p:MSBuildEnableWorkloadResolver=false -o site/ooui-maui
+
+      - name: Publish the MAUI demo as WebAssembly
+        run: >
+          dotnet publish PlatformSamples/BrowserWasmMaui/BrowserWasmMaui.csproj
+          -c Release -p:MSBuildEnableWorkloadResolver=false -o site/browser-wasm-maui
+
+      - name: Publish Ooui without MAUI as WebAssembly
+        run: >
+          dotnet publish PlatformSamples/BrowserWasm/BrowserWasm.csproj
+          -c Release -p:MSBuildEnableWorkloadResolver=false -o site/browser-wasm
+
+      - name: Assemble the site
+        run: |
+          cp .github/pages/index.html site/index.html
+          # Jekyll would try to process the bundle folders; Pages serves them verbatim instead.
+          touch site/.nojekyll
+          du -sh site site/*
+
+      - name: Upload the site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

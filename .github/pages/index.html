@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ooui &middot; samples in the browser</title>
+  <style>
+    :root { color-scheme: light; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #f4f6fb;
+      color: #172238;
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      line-height: 1.55;
+    }
+    header { background: #17213f; color: #d3d0ef; }
+    .wrap { max-width: 860px; margin: 0 auto; padding: 0 20px; }
+    header .wrap { padding: 28px 20px; }
+    header h1 { margin: 0; font-size: 24px; letter-spacing: .3px; color: #fff; }
+    header h1 em { color: #bdb5ff; font-style: normal; }
+    header p { margin: 6px 0 0; font-size: 14px; }
+    header a { color: #bdb5ff; }
+    main { padding: 28px 20px 64px; }
+    h2 { font-size: 15px; text-transform: uppercase; letter-spacing: .12em; color: #5b6982; margin: 36px 0 12px; }
+    h2:first-child { margin-top: 0; }
+    .cards { display: grid; gap: 14px; }
+    a.card {
+      display: block;
+      padding: 18px 22px;
+      background: #fff;
+      border: 1px solid #dde3f0;
+      border-radius: 14px;
+      color: inherit;
+      text-decoration: none;
+      transition: border-color .15s, transform .15s;
+    }
+    a.card:hover { border-color: #8f7dff; transform: translateY(-2px); }
+    a.card strong { display: block; font-size: 17px; color: #2b1fd0; }
+    a.card span { display: block; margin-top: 4px; font-size: 14px; color: #4b5872; }
+    code { padding: 2px 6px; background: #eef1f9; border-radius: 6px; font-size: 13px; }
+    table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid #dde3f0; border-radius: 14px; overflow: hidden; font-size: 14px; }
+    th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid #eef1f9; vertical-align: top; }
+    tr:last-child td { border-bottom: none; }
+    th { background: #f8fafd; font-size: 13px; color: #5b6982; text-transform: uppercase; letter-spacing: .08em; }
+    td code { display: inline-block; }
+    .note { font-size: 13px; color: #5b6982; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <h1>Ooui <em>×</em> .NET 11</h1>
+      <p>Samples that run without a server, built from this branch on every push &middot; <a href="https://github.com/Agredo/Ooui">source</a></p>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <h2>Running in this tab</h2>
+    <div class="cards">
+      <a class="card" href="./ooui-maui/">
+        <strong>The MAUI app, three times over</strong>
+        <span>Sample.Ooui.Wasm &mdash; Models, Services, ViewModels and the MAUI app as four projects, with
+        Community Toolkit MVVM: the counter page, a details page and real navigation with <code>#/main</code>.</span>
+      </a>
+      <a class="card" href="./browser-wasm-maui/">
+        <strong>The MAUI demo controls</strong>
+        <span>BrowserWasmMaui &mdash; inputs, sliders, switches, lists and the MVVM task list of
+        <code>MauiDemoUi</code>, all written in XAML and rendered into the DOM.</span>
+      </a>
+      <a class="card" href="./browser-wasm/">
+        <strong>Ooui without MAUI</strong>
+        <span>BrowserWasm &mdash; plain Ooui elements in a browser build: the message protocol and the HTML
+        diffing run entirely in the tab.</span>
+      </a>
+    </div>
+
+    <h2>Needs a server, so not hosted here</h2>
+    <p class="note">
+      GitHub Pages only serves files. The samples that answer requests themselves are one command each:
+    </p>
+    <table>
+      <thead>
+        <tr><th>Sample</th><th>Start</th><th>What it shows</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>Sample.Ooui.AspNetCore</code></td>
+          <td><code>dotnet run --project PlatformSamples/SampleApp/Sample.Ooui.AspNetCore</code></td>
+          <td>The same four project MAUI app, rendered by Kestrel per request and updated over <code>/ooui.ws</code>.</td>
+        </tr>
+        <tr>
+          <td><code>Sample.Ooui.AspNetCoreWasm</code></td>
+          <td><code>dotnet run --project PlatformSamples/SampleApp/Sample.Ooui.AspNetCoreWasm</code></td>
+          <td>One process, both rendering paths: Kestrel at <code>/</code>, the published bundle at <code>/wasm/</code>.</td>
+        </tr>
+        <tr>
+          <td><code>AspNetCoreMaui</code></td>
+          <td><code>dotnet run --project PlatformSamples/AspNetCoreMaui</code></td>
+          <td>A single MAUI page served by ASP.NET Core, with a form that posts back over the socket.</td>
+        </tr>
+        <tr>
+          <td><code>AspNetCoreMauiWasm</code></td>
+          <td><code>dotnet run --project PlatformSamples/AspNetCoreMauiWasm</code></td>
+          <td>The demo page from Kestrel <em>and</em> from a WebAssembly bundle under <code>/wasm/</code>.</td>
+        </tr>
+        <tr>
+          <td><code>AspNetCoreMvc</code></td>
+          <td><code>dotnet run --project PlatformSamples/AspNetCoreMvc</code></td>
+          <td>Ooui elements inside an MVC controller result.</td>
+        </tr>
+        <tr>
+          <td><code>ConsoleNet11</code></td>
+          <td><code>dotnet run --project PlatformSamples/ConsoleNet11</code></td>
+          <td>The self hosted server, including the navigation showcase.</td>
+        </tr>
+        <tr>
+          <td><code>Samples</code></td>
+          <td><code>dotnet run --project Samples/Samples.csproj</code></td>
+          <td>The original tour of Ooui's controls.</td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="note" style="margin-top:18px">
+      See the README for how each host works &mdash; and note that the WebAssembly samples here are served
+      from a subfolder, which is exactly what GitHub Pages does.
+    </p>
+  </main>
+</body>
+</html>
