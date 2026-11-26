@@ -360,7 +360,7 @@ function msgListen (m) {
             k: m.k,
         };
         if (inputEvents[m.k]) {
-            em.v = (node.tagName === "INPUT" && node.type === "checkbox") ?
+            em.v = (node.tagName === "INPUT" && (node.type === "checkbox" || node.type === "radio")) ?
                 node.checked :
                 node.value;
         }

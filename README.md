@@ -108,8 +108,8 @@ Each WebSocket connection creates its own window and view hierarchy. Closing the
 | Area | Controls and behavior |
 | ---- | --------------------- |
 | Pages and layout | `ContentPage`, `ContentView`, vertical/horizontal stacks, `Grid` (automatic and explicit placement), `FlexLayout`, `ScrollView`, `Border`, `BoxView` |
-| Forms | `Entry`, `Editor`, `CheckBox`, `Switch`, `Slider`, `Stepper`, `Picker`, `DatePicker`, `TimePicker`, `SearchBar` |
-| Display and feedback | `Label`, `Button`, `Image`, `ProgressBar`, `ActivityIndicator`, focus requests |
+| Forms | `Entry`, `Editor`, `CheckBox`, `RadioButton`, `Switch`, `Slider`, `Stepper`, `Picker`, `DatePicker`, `TimePicker`, `SearchBar` |
+| Display and feedback | `Label`, `Button`, `ImageButton`, `Image`, `ProgressBar`, `ActivityIndicator`, focus requests |
 | Collections | `CollectionView` with `ItemsSource` (including `INotifyCollectionChanged`), `ItemTemplate`, `EmptyView`, single/multiple selection, vertical/horizontal/grid `ItemsLayout` with `ItemSpacing` |
 
 Common text, font, color, sizing, padding, transformation, interaction, and enabled/visibility properties are mapped by the browser handlers. Browser edits update MAUI properties and bindings, while server-side changes update live DOM form values.
@@ -183,7 +183,7 @@ dotnet run --project PlatformSamples/AspNetCoreMaui/AspNetCoreMaui.csproj   # ht
 | `/counter` | `Pages/CounterPage.xaml` | `Label` + `Button` round trip, per browser state |
 | `/form` | `Pages/FormPage.xaml` | `Entry`, `Editor`, `Picker`, `DatePicker`, `TimePicker`, `Slider`, `CheckBox` and server-side validation |
 | `/people` | `Pages/PeoplePage.xaml` | `CollectionView` with a XAML `DataTemplate`, selection, add and remove |
-| `/controls` | `Pages/ControlsPage.xaml` | `ProgressBar`, `ActivityIndicator`, `BoxView`, `SearchBar`, `Image`, nested stack layouts |
+| `/controls` | `Pages/ControlsPage.xaml` | `ProgressBar`, `ActivityIndicator`, `BoxView`, `SearchBar`, `Stepper`, `RadioButton`, `ImageButton`, `Image`, nested stack layouts |
 | `/reset` | | clears the session and redirects to `/` |
 
 Every page is a normal MAUI `ContentPage` written in XAML with a code-behind, plus one `Theme.xaml` that holds the colours and styles through `MergedDictionaries`. Nothing in `Pages/` knows about HTML, Ooui or the browser — the controller is the only place that turns a page into a response.

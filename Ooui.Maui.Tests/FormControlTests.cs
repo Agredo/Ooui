@@ -201,6 +201,53 @@ public sealed class FormControlTests
         Assert.AreEqual(1, searches);
     }
 
+    [TestMethod]
+    public void RadioButtonsShareAGroupAndFollowBrowserChanges()
+    {
+        using var scope = app.Services.CreateScope();
+        var context = new MauiContext(scope.ServiceProvider);
+        var small = new RadioButton { Content = "Small", GroupName = "size" };
+        var large = new RadioButton { Content = "Large", GroupName = "size" };
+        var layout = new VerticalStackLayout { small, large };
+        var page = new ContentPage { Content = layout };
+        var root = layout.ToOouiElement(context);
+        var smallElement = (Label)root.Children[0];
+        var largeElement = (Label)root.Children[1];
+        var smallInput = (Input)smallElement.Children[0];
+        var largeInput = (Input)largeElement.Children[0];
+
+        Assert.AreEqual(InputType.Radio, largeInput.Type);
+        Assert.AreEqual("size", largeInput.Name);
+        Assert.AreEqual("Large", largeElement.Text);
+        Assert.IsFalse(smallInput.IsChecked);
+
+        smallInput.Receive(Message.Event(smallInput.Id, "change", true));
+        Assert.IsTrue(small.IsChecked);
+        Assert.IsTrue(smallInput.IsChecked);
+
+        largeInput.Receive(Message.Event(largeInput.Id, "change", true));
+        Assert.IsTrue(large.IsChecked);
+        Assert.IsFalse(small.IsChecked);
+        Assert.IsFalse(smallInput.IsChecked);
+    }
+
+    [TestMethod]
+    public void ImageButtonShowsItsImageAndRaisesClicked()
+    {
+        using var scope = app.Services.CreateScope();
+        var context = new MauiContext(scope.ServiceProvider);
+        var clicks = 0;
+        var button = new ImageButton { Source = "logo.svg", Aspect = Aspect.AspectFill };
+        button.Clicked += (_, _) => clicks++;
+        var element = (Button)button.ToOouiElement(context);
+        var image = (Image)element.Children[0];
+
+        Assert.AreEqual("/logo.svg", image.Source);
+        Assert.AreEqual("cover", image.Style["object-fit"]);
+        element.Receive(Message.Event(element.Id, "click"));
+        Assert.AreEqual(1, clicks);
+    }
+
     sealed class TextModel : INotifyPropertyChanged
     {
         string? text;

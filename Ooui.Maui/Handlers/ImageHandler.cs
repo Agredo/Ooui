@@ -35,14 +35,6 @@ public class ImageHandler : OouiViewHandler<IImage, Image>, IImageHandler
     public static void MapAspect(ImageHandler handler, IImage image) =>
         handler.PlatformView.Style["object-fit"] = image.Aspect switch { Aspect.AspectFit => "contain", Aspect.AspectFill => "cover", _ => "fill" };
 
-    public static void MapSource(ImageHandler handler, IImage image)
-    {
-        handler.PlatformView.Source = image.Source switch
-        {
-            UriImageSource uri => uri.Uri.ToString(),
-            FileImageSource file when Uri.TryCreate(file.File, UriKind.Absolute, out var uri) && uri.IsAbsoluteUri => uri.ToString(),
-            FileImageSource file => "/" + file.File.TrimStart('/'),
-            _ => null,
-        };
-    }
+    public static void MapSource(ImageHandler handler, IImage image) =>
+        handler.PlatformView.Source = ImageSources.ToUrl(image.Source as ImageSource);
 }

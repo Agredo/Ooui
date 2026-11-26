@@ -45,6 +45,8 @@ public static class OouiMauiExtensions
             handlers.AddHandler<CollectionView, CollectionViewHandler>();
             handlers.AddHandler<Border, BorderHandler>();
             handlers.AddHandler<Microsoft.Maui.Controls.Image, ImageHandler>();
+            handlers.AddHandler<Microsoft.Maui.Controls.RadioButton, RadioButtonHandler>();
+            handlers.AddHandler<ImageButton, ImageButtonHandler>();
             handlers.AddHandler<ProgressBar, ProgressBarHandler>();
             handlers.AddHandler<ActivityIndicator, ActivityIndicatorHandler>();
             handlers.AddHandler<BoxView, BoxViewHandler>();

@@ -86,6 +86,33 @@
                 <RoundRectangle CornerRadius="18" />
             </Border.StrokeShape>
             <VerticalStackLayout Spacing="12">
+                <Label Style="{StaticResource CardHeading}" Text="Choices" />
+                <Label Style="{StaticResource Small}" Text="RadioButton groups and an ImageButton." />
+
+                <VerticalStackLayout Spacing="6">
+                    <RadioButton AutomationId="plan-starter" GroupName="plan" Content="Starter" CheckedChanged="OnPlanChanged" />
+                    <RadioButton AutomationId="plan-team" GroupName="plan" Content="Team" CheckedChanged="OnPlanChanged" />
+                    <RadioButton AutomationId="plan-scale" GroupName="plan" Content="Scale" CheckedChanged="OnPlanChanged" />
+                </VerticalStackLayout>
+                <Label x:Name="PlanLabel" AutomationId="plan-echo" Style="{StaticResource Small}" Text="No plan selected." />
+
+                <HorizontalStackLayout Spacing="14">
+                    <ImageButton AutomationId="logo-button"
+                                 Source="/logo.svg"
+                                 Aspect="AspectFit"
+                                 HeightRequest="48"
+                                 WidthRequest="48"
+                                 Clicked="OnLogoClicked" />
+                    <Label x:Name="LogoLabel" AutomationId="logo-echo" Style="{StaticResource Body}" Text="Click the logo." />
+                </HorizontalStackLayout>
+            </VerticalStackLayout>
+        </Border>
+
+        <Border Style="{StaticResource Card}">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="18" />
+            </Border.StrokeShape>
+            <VerticalStackLayout Spacing="12">
                 <Label Style="{StaticResource CardHeading}" Text="Not supported yet" />
                 <Label Style="{StaticResource Small}" Text="Keep these out of a production plan for now." />
                 <Label Style="{StaticResource Small}"
