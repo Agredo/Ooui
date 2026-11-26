@@ -23,6 +23,14 @@ public partial class FormPage : ContentPage
 
     void OnNameChanged (object? sender, TextChangedEventArgs e) => state.Name = e.NewTextValue ?? "";
 
+    void OnNameCompleted (object? sender, EventArgs e)
+    {
+        state.FormNote = "Enter on the project name jumped to the contact field.";
+        StatusLabel.TextColor = ThemeColor ("Muted");
+        StatusLabel.Text = state.FormNote;
+        EmailEntry.Focus ();
+    }
+
     void OnEmailChanged (object? sender, TextChangedEventArgs e) => state.Email = e.NewTextValue ?? "";
 
     void OnNotesChanged (object? sender, TextChangedEventArgs e) => state.Notes = e.NewTextValue ?? "";

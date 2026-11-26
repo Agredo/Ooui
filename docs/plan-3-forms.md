@@ -103,6 +103,53 @@ Localized date pickers independent of the browser locale, rich text editors, mas
 New tests green, existing tests green, 0 warnings, Playwright checks pass, README updated, nothing committed without
 user approval. Final report to the user in German, short.
 
-## Findings (fill in during Step 1)
+## Findings (filled in during Step 1)
 
-_(empty)_
+| Property | MAUI type | Mapped before | Now |
+|---|---|---|---|
+| `Entry.IsPassword` | `IEntry` | yes → `type=password` | unchanged |
+| `Entry.MaxLength` | `ITextInput` | `maxlength`, but `int.MaxValue` became `maxlength="undefined"` | `>= int.MaxValue` or `< 0` removes the attribute |
+| `Entry.Keyboard` | `ITextInput` | `Email`/`Tel`/`Url` → input type; `Numeric` → `type=number` (spinners, invalid text dropped) | `Numeric` → `inputmode="decimal"` on a text input |
+| `Entry.ReturnType` | `Entry` | no | `enterkeyhint` (`go`, `next`, `search`, `send`, `done`, else `enter`) |
+| `Entry.ClearButtonVisibility` | `Entry` | no | still no (see out of scope) |
+| `Entry.IsReadOnly` | `ITextInput` | yes → `readonly` | unchanged |
+| `Entry.IsSpellCheckEnabled` | `ITextInput` | no | `spellcheck` |
+| `Entry.IsTextPredictionEnabled` | `ITextInput` | no | folded into `spellcheck`/`autocomplete` by the browser, nothing to map |
+| `Entry.CursorPosition`, `SelectionLength` | `IEntry` | no (DOM only, no MAUI property write-back) | still no (see out of scope) |
+| `Entry.HorizontalTextAlignment` | `ITextAlignment` | yes → `text-align` | unchanged |
+| `Entry.Completed` | event | raised on `change` (double fired after Enter) | Enter raises it once, `change` keeps the blur case |
+| `Editor.AutoSize` | `Editor` | no | no (textareas do not grow in the browser) |
+| `Editor.MaxLength` | `ITextInput` | yes | same `int.MaxValue` rule as `Entry` |
+| `Editor.IsReadOnly` | `ITextInput` | yes | unchanged |
+| `Editor.Keyboard` | `ITextInput` | no | no (a textarea uses the text keyboard) |
+| `Picker.Title`, `TitleColor` | `Picker` | yes | unchanged |
+| `Picker.ItemDisplayBinding` | `Picker` | yes | unchanged |
+| `Picker.SelectedItem` | `Picker` | yes | unchanged |
+| `DatePicker.Format`, `TimePicker.Format` | `IDatePicker`, `ITimePicker` | no — the native input always used the browser locale | formatted `Span` over the (still native) input |
+| `DatePicker.TextColor`, `TimePicker.TextColor` | `ITextStyle` | yes | moved to the display `Span` |
+| `Slider.MinimumTrackColor`, `ThumbColor` | `ISlider` | `ThumbColor` only | `MinimumTrackColor` first, then ThumbColor → `accent-color` |
+| `Slider.MaximumTrackColor` | `ISlider` | no | no (one `accent-color` per input) |
+| `Switch.OnColor` | `Microsoft.Maui.Controls.Switch` | no (`ISwitch` has no `OnColor`) | `OnColor` first, then `TrackColor`/`ThumbColor` → `accent-color` |
+| `Switch.ThumbColor` | `ISwitch` | yes | unchanged |
+
+## Result
+
+Steps 2–6 are implemented and verified:
+
+- `EntryHandler`/`EditorHandler`: `spellcheck`, `enterkeyhint`, the `maxlength` rules, `inputmode` for numeric
+  keyboards, and a `Completed` that fires once for Enter (`keydown`) and again for a plain blur (`change`).
+- `DatePickerHandler`/`TimePickerHandler` render `OouiViewHandler<..., Div>` with a hidden `Span` plus the native
+  input as an invisible overlay; `OouiStyle.HasCustomFormat`/`SetOverlay` switch between both modes. Time formats
+  are applied through `DateTime.Today.Add(time)` because `TimeSpan.ToString("HH.mm")` throws.
+- `SwitchHandler`/`SliderHandler` merge their colors into `accent-color`.
+- `PlatformSamples/AspNetCoreMaui/Pages/FormPage.xaml` uses a `CommunityToolkit.Maui` 17.0.0
+  `EmailValidationBehavior` with `ValidateOnValueChanged`, an `IsValid`-bound submit button and a `Valid`/`Invalid`
+  visual state group (the toolkit starts in the `Invalid` state, so the hint reads as a hint, and the placeholder
+  keeps its own color).
+- Tests: `EntryMapsKeyboardMaxLengthReturnTypeAndSpellCheck`, `EntryRaisesCompletedOnTheEnterKey`,
+  `EntryCompletesOnceForEnterAndAgainAfterTyping`, `DatePickerKeepsTheNativeValueAndShowsCustomFormatsInASpan`,
+  `TimePickerKeepsTheNativeValueAndShowsCustomFormatsInASpan`, `SliderAndSwitchMergeTheirColorsIntoAccentColor`.
+- Browser (`verify_forms.py`, 25 checks): `enterkeyhint`, `type=email`, `spellcheck=false`, `maxlength`,
+  Enter → `Completed` with focus moving on, invalid/valid email → hints, submit state and text color, both picker
+  spans against the native value, `accent-color` on slider and switch.
+

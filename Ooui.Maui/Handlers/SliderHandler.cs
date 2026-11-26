@@ -69,5 +69,5 @@ public class SliderHandler : OouiViewHandler<ISlider, Input>, ISliderHandler
         handler.PlatformView.Value = slider.Value.ToString(CultureInfo.InvariantCulture);
 
     public static void MapColors(SliderHandler handler, ISlider slider) =>
-        handler.PlatformView.Style["accent-color"] = OouiStyle.ToCss(slider.ThumbColor ?? slider.MinimumTrackColor);
+        handler.PlatformView.Style["accent-color"] = OouiStyle.ToCss(slider.MinimumTrackColor ?? slider.ThumbColor);
 }

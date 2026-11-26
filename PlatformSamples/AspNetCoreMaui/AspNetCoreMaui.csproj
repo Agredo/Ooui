@@ -16,6 +16,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Ooui.Maui\Ooui.Maui.csproj" />
     <ProjectReference Include="..\..\Ooui.AspNetCore\Ooui.AspNetCore.csproj" />
+    <PackageReference Include="CommunityToolkit.Maui" Version="17.0.0" />
   </ItemGroup>
 
 </Project>

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:local="clr-namespace:AspNetCoreMaui"
              x:Class="AspNetCoreMaui.Pages.FormPage">
 
@@ -9,6 +10,23 @@
             <ResourceDictionary.MergedDictionaries>
                 <local:Theme />
             </ResourceDictionary.MergedDictionaries>
+
+            <!-- The toolkit behavior switches the Entry into the Valid/Invalid state. -->
+            <Style x:Key="ValidatedEntry" TargetType="Entry">
+                <Setter Property="TextColor" Value="{StaticResource Ink}" />
+                <Setter Property="VisualStateManager.VisualStateGroups">
+                    <VisualStateGroupList>
+                        <VisualStateGroup x:Name="ValidationStates">
+                            <VisualState x:Name="Valid" />
+                            <VisualState x:Name="Invalid">
+                                <VisualState.Setters>
+                                    <Setter Property="TextColor" Value="{StaticResource Danger}" />
+                                </VisualState.Setters>
+                            </VisualState>
+                        </VisualStateGroup>
+                    </VisualStateGroupList>
+                </Setter>
+            </Style>
         </ResourceDictionary>
     </ContentPage.Resources>
 
@@ -30,13 +48,32 @@
                 <Entry x:Name="NameEntry"
                        AutomationId="name"
                        Placeholder="e.g. Northstar"
+                       ReturnType="Next"
+                       Completed="OnNameCompleted"
                        TextChanged="OnNameChanged" />
 
                 <Label Style="{StaticResource Caption}" Text="CONTACT" />
                 <Entry x:Name="EmailEntry"
                        AutomationId="email"
+                       Style="{StaticResource ValidatedEntry}"
                        Placeholder="you@example.com"
-                       TextChanged="OnEmailChanged" />
+                       Keyboard="Email"
+                       IsSpellCheckEnabled="False"
+                       TextChanged="OnEmailChanged">
+                    <Entry.Behaviors>
+                        <toolkit:EmailValidationBehavior x:Name="EmailCheck" Flags="ValidateOnValueChanged" />
+                    </Entry.Behaviors>
+                </Entry>
+                <Label AutomationId="email-valid"
+                       Style="{StaticResource Small}"
+                       TextColor="{StaticResource Success}"
+                       Text="Looks good — we can reach you."
+                       IsVisible="{Binding IsValid, Source={x:Reference EmailCheck}}" />
+                <Label AutomationId="email-invalid"
+                       Style="{StaticResource Small}"
+                       TextColor="{StaticResource Danger}"
+                       Text="Use an address like dev@example.com — Submit stays disabled until it works."
+                       IsVisible="{Binding IsNotValid, Source={x:Reference EmailCheck}}" />
 
                 <Label Style="{StaticResource Caption}" Text="PROJECT TYPE" />
                 <Picker x:Name="RolePicker"
@@ -59,11 +96,11 @@
                     </Grid.ColumnDefinitions>
                     <VerticalStackLayout Grid.Column="0" Spacing="6">
                         <Label Style="{StaticResource Caption}" Text="LAUNCH DATE" />
-                        <DatePicker x:Name="DateControl" AutomationId="date" />
+                        <DatePicker x:Name="DateControl" AutomationId="date" Format="dd.MM.yyyy" />
                     </VerticalStackLayout>
                     <VerticalStackLayout Grid.Column="1" Spacing="6">
                         <Label Style="{StaticResource Caption}" Text="LAUNCH TIME" />
-                        <TimePicker x:Name="TimeControl" AutomationId="time" />
+                        <TimePicker x:Name="TimeControl" AutomationId="time" Format="HH:mm" />
                     </VerticalStackLayout>
                 </Grid>
 
@@ -112,6 +149,7 @@
                     <Button Style="{StaticResource Primary}"
                             AutomationId="submit"
                             Text="Submit"
+                            IsEnabled="{Binding IsValid, Source={x:Reference EmailCheck}}"
                             Clicked="OnSubmitClicked" />
                     <Button Style="{StaticResource Secondary}"
                             AutomationId="reset-form"

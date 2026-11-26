@@ -11,6 +11,7 @@ public class SwitchHandler : OouiViewHandler<ISwitch, Input>, ISwitchHandler
             [nameof(ISwitch.IsOn)] = MapIsOn,
             [nameof(ISwitch.TrackColor)] = MapColors,
             [nameof(ISwitch.ThumbColor)] = MapColors,
+            [nameof(Microsoft.Maui.Controls.Switch.OnColor)] = MapColors,
         };
 
     public SwitchHandler() : base(Mapper) { }
@@ -45,6 +46,12 @@ public class SwitchHandler : OouiViewHandler<ISwitch, Input>, ISwitchHandler
             handler.PlatformView.IsChecked = switchView.IsOn;
     }
 
-    public static void MapColors(SwitchHandler handler, ISwitch switchView) =>
-        handler.PlatformView.Style["accent-color"] = OouiStyle.ToCss(switchView.TrackColor);
+    // accent-color tints the whole switch, so the colors are merged into one value.
+    // OnColor lives on the control, not on ISwitch.
+    public static void MapColors(SwitchHandler handler, ISwitch switchView)
+    {
+        var onColor = (switchView as Microsoft.Maui.Controls.Switch)?.OnColor;
+        handler.PlatformView.Style["accent-color"] =
+            OouiStyle.ToCss(onColor ?? switchView.TrackColor ?? switchView.ThumbColor);
+    }
 }

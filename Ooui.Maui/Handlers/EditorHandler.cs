@@ -15,6 +15,7 @@ public class EditorHandler : OouiViewHandler<IEditor, TextArea>, IEditorHandler
             [nameof(ITextAlignment.HorizontalTextAlignment)] = MapHorizontalTextAlignment,
             [nameof(IPlaceholder.Placeholder)] = MapPlaceholder,
             [nameof(ITextInput.IsReadOnly)] = MapIsReadOnly,
+            [nameof(ITextInput.IsSpellCheckEnabled)] = MapIsSpellCheckEnabled,
             [nameof(ITextInput.MaxLength)] = MapMaxLength,
         };
 
@@ -79,9 +80,12 @@ public class EditorHandler : OouiViewHandler<IEditor, TextArea>, IEditorHandler
             handler.PlatformView.RemoveAttribute("readonly");
     }
 
+    public static void MapIsSpellCheckEnabled(EditorHandler handler, IEditor editor) =>
+        handler.PlatformView.SetAttribute("spellcheck", editor.IsSpellCheckEnabled ? "true" : "false");
+
     public static void MapMaxLength(EditorHandler handler, IEditor editor)
     {
-        if (editor.MaxLength >= 0)
+        if (editor.MaxLength >= 0 && editor.MaxLength < int.MaxValue)
             handler.PlatformView.SetAttribute("maxlength", editor.MaxLength);
         else
             handler.PlatformView.RemoveAttribute("maxlength");

@@ -18,11 +18,15 @@ public class EntryHandler : OouiViewHandler<IEntry, TextInput>, IEntryHandler
             [nameof(IPlaceholder.PlaceholderColor)] = MapPlaceholderColor,
             [nameof(IEntry.IsPassword)] = MapIsPassword,
             [nameof(ITextInput.IsReadOnly)] = MapIsReadOnly,
+            [nameof(ITextInput.IsSpellCheckEnabled)] = MapIsSpellCheckEnabled,
             [nameof(ITextInput.MaxLength)] = MapMaxLength,
             [nameof(ITextInput.Keyboard)] = MapKeyboard,
+            [nameof(Entry.ReturnType)] = MapReturnType,
         };
 
     public EntryHandler() : base(Mapper) { }
+
+    bool completedOnEnter;
 
     IEntry IEntryHandler.VirtualView => VirtualView;
     object IEntryHandler.PlatformView => PlatformView;
@@ -40,24 +44,34 @@ public class EntryHandler : OouiViewHandler<IEntry, TextInput>, IEntryHandler
 
     protected override void DisconnectHandler(TextInput platformView)
     {
+        completedOnEnter = false;
         platformView.Input -= OnInput;
         platformView.Change -= OnChange;
         platformView.KeyDown -= OnKeyDown;
         base.DisconnectHandler(platformView);
     }
 
-    void OnInput(object? sender, TargetEventArgs args) => UpdateText();
+    void OnInput(object? sender, TargetEventArgs args)
+    {
+        completedOnEnter = false;
+        UpdateText();
+    }
 
     void OnChange(object? sender, TargetEventArgs args)
     {
         UpdateText();
+        // Enter commits the value, so the browser follows it with a change event; that one must not complete twice.
+        if (completedOnEnter) {
+            completedOnEnter = false;
+            return;
+        }
         VirtualView.Completed();
     }
 
     void OnKeyDown(object? sender, TargetEventArgs args)
     {
-        if (args.Value == "Enter")
-        {
+        if (args.Value == "Enter") {
+            completedOnEnter = true;
             UpdateText();
             VirtualView.Completed();
         }
@@ -69,15 +83,7 @@ public class EntryHandler : OouiViewHandler<IEntry, TextInput>, IEntryHandler
             bindable.SetValue(InputView.TextProperty, PlatformView.Value);
     }
 
-    void UpdateReturnType() => PlatformView.SetAttribute("enterkeyhint", VirtualView.ReturnType switch
-    {
-        ReturnType.Go => "go",
-        ReturnType.Next => "next",
-        ReturnType.Search => "search",
-        ReturnType.Send => "send",
-        ReturnType.Done => "done",
-        _ => "enter",
-    });
+    void UpdateReturnType() => MapReturnType (this, VirtualView);
 
     public static void MapText(EntryHandler handler, IEntry entry)
     {
@@ -110,6 +116,9 @@ public class EntryHandler : OouiViewHandler<IEntry, TextInput>, IEntryHandler
 
     public static void MapIsPassword(EntryHandler handler, IEntry entry) => MapKeyboard(handler, entry);
 
+    public static void MapIsSpellCheckEnabled(EntryHandler handler, IEntry entry) =>
+        handler.PlatformView.SetAttribute("spellcheck", entry.IsSpellCheckEnabled ? "true" : "false");
+
     public static void MapIsReadOnly(EntryHandler handler, IEntry entry)
     {
         if (entry.IsReadOnly)
@@ -118,18 +127,40 @@ public class EntryHandler : OouiViewHandler<IEntry, TextInput>, IEntryHandler
             handler.PlatformView.RemoveAttribute("readonly");
     }
 
-    public static void MapMaxLength(EntryHandler handler, IEntry entry) =>
-        handler.PlatformView.SetAttribute("maxlength", entry.MaxLength < 0 ? null : entry.MaxLength);
+    // int.MaxValue is MAUI's "no limit"; sending it as maxlength would only add noise to the markup.
+    public static void MapMaxLength(EntryHandler handler, IEntry entry)
+    {
+        if (entry.MaxLength < 0 || entry.MaxLength >= int.MaxValue)
+            handler.PlatformView.RemoveAttribute("maxlength");
+        else
+            handler.PlatformView.SetAttribute("maxlength", entry.MaxLength);
+    }
+
+    public static void MapReturnType(EntryHandler handler, IEntry entry) =>
+        handler.PlatformView.SetAttribute("enterkeyhint", entry.ReturnType switch
+        {
+            ReturnType.Go => "go",
+            ReturnType.Next => "next",
+            ReturnType.Search => "search",
+            ReturnType.Send => "send",
+            ReturnType.Done => "done",
+            _ => "enter",
+        });
 
     public static void MapKeyboard(EntryHandler handler, IEntry entry)
     {
-        handler.PlatformView.Type = entry.IsPassword ? InputType.Password : entry.Keyboard switch
+        var input = handler.PlatformView;
+        input.Type = entry.IsPassword ? InputType.Password : entry.Keyboard switch
         {
             _ when entry.Keyboard == Keyboard.Email => InputType.Email,
-            _ when entry.Keyboard == Keyboard.Numeric => InputType.Number,
             _ when entry.Keyboard == Keyboard.Telephone => InputType.Tel,
             _ when entry.Keyboard == Keyboard.Url => InputType.Url,
             _ => InputType.Text,
         };
+        // type="number" would add spinners and drop invalid text; inputmode only asks for the numeric keypad.
+        if (entry.Keyboard == Keyboard.Numeric)
+            input.SetAttribute("inputmode", "decimal");
+        else
+            input.RemoveAttribute("inputmode");
     }
 }

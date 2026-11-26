@@ -39,4 +39,41 @@ internal static class OouiStyle
         };
         element.Style.FontStyle = text.Font.Slant != FontSlant.Default ? "italic" : null;
     }
+
+    public static bool HasCustomFormat(string? format, string defaultFormat) =>
+        !string.IsNullOrEmpty(format) && format != defaultFormat;
+
+    // Native date and time inputs always use the browser locale. A custom Format therefore needs a
+    // visible text of its own with the still working native input laid transparently on top of it.
+    public static void SetOverlay(Span display, Input input, bool custom)
+    {
+        if (custom)
+        {
+            display.Style["display"] = "inline-block";
+            display.Style["padding"] = "6px 10px";
+            display.Style["border"] = "1px solid #b0b0b0";
+            display.Style["border-radius"] = "4px";
+            display.Style["background-color"] = "#ffffff";
+            input.Style["position"] = "absolute";
+            input.Style["inset"] = "0";
+            input.Style["width"] = "100%";
+            input.Style["height"] = "100%";
+            input.Style["opacity"] = "0";
+            input.Style["cursor"] = "pointer";
+        }
+        else
+        {
+            display.Style["display"] = "none";
+            display.Style["padding"] = null;
+            display.Style["border"] = null;
+            display.Style["border-radius"] = null;
+            display.Style["background-color"] = null;
+            input.Style["position"] = null;
+            input.Style["inset"] = null;
+            input.Style["width"] = null;
+            input.Style["height"] = null;
+            input.Style["opacity"] = null;
+            input.Style["cursor"] = null;
+        }
+    }
 }

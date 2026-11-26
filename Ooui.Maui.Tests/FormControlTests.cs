@@ -94,6 +94,89 @@ public sealed class FormControlTests
     }
 
     [TestMethod]
+    public void EntryMapsKeyboardMaxLengthReturnTypeAndSpellCheck()
+    {
+        using var scope = app.Services.CreateScope();
+        var context = new MauiContext(scope.ServiceProvider);
+        var entry = new Entry
+        {
+            Keyboard = Keyboard.Numeric,
+            ReturnType = ReturnType.Go,
+            IsSpellCheckEnabled = false,
+        };
+        var input = (TextInput)entry.ToOouiElement(context);
+
+        Assert.AreEqual(InputType.Text, input.Type);
+        Assert.AreEqual("decimal", input.GetStringAttribute("inputmode", ""));
+        Assert.AreEqual("go", input.GetStringAttribute("enterkeyhint", ""));
+        Assert.AreEqual("false", input.GetStringAttribute("spellcheck", ""));
+
+        entry.Keyboard = Keyboard.Url;
+        Assert.AreEqual(InputType.Url, input.Type);
+        Assert.AreEqual("", input.GetStringAttribute("inputmode", ""));
+
+        entry.Keyboard = Keyboard.Telephone;
+        Assert.AreEqual(InputType.Tel, input.Type);
+
+        entry.ReturnType = ReturnType.Search;
+        Assert.AreEqual("search", input.GetStringAttribute("enterkeyhint", ""));
+
+        entry.IsSpellCheckEnabled = true;
+        Assert.AreEqual("true", input.GetStringAttribute("spellcheck", ""));
+
+        var limited = new Entry { MaxLength = 12 };
+        var limitedInput = (TextInput)limited.ToOouiElement(context);
+        Assert.AreEqual("12", limitedInput.GetStringAttribute("maxlength", ""));
+        limited.MaxLength = int.MaxValue;
+        Assert.IsNull(limitedInput.GetAttribute("maxlength"));
+
+        var unlimitedEditor = new Editor { MaxLength = int.MaxValue };
+        var area = (TextArea)unlimitedEditor.ToOouiElement(context);
+        Assert.IsNull(area.GetAttribute("maxlength"));
+        unlimitedEditor.MaxLength = 40;
+        Assert.AreEqual("40", area.GetStringAttribute("maxlength", ""));
+    }
+
+    [TestMethod]
+    public void EntryRaisesCompletedOnTheEnterKey()
+    {
+        using var scope = app.Services.CreateScope();
+        var context = new MauiContext(scope.ServiceProvider);
+        var entry = new Entry { Text = "Projekt" };
+        var completed = 0;
+        entry.Completed += (_, _) => completed++;
+        var input = (TextInput)entry.ToOouiElement(context);
+
+        input.Receive(Message.Event(input.Id, "keydown", "Enter"));
+        Assert.AreEqual(1, completed);
+
+        input.Receive(Message.Event(input.Id, "keydown", "Tab"));
+        Assert.AreEqual(1, completed);
+    }
+
+    [TestMethod]
+    public void EntryCompletesOnceForEnterAndAgainAfterTyping()
+    {
+        using var scope = app.Services.CreateScope();
+        var context = new MauiContext(scope.ServiceProvider);
+        var entry = new Entry { Text = "Projekt" };
+        var completed = 0;
+        entry.Completed += (_, _) => completed++;
+        var input = (TextInput)entry.ToOouiElement(context);
+
+        input.Receive(Message.Event(input.Id, "keydown", "Enter"));
+        input.Receive(Message.Event(input.Id, "change", "Projekt"));
+        Assert.AreEqual(1, completed);
+
+        input.Receive(Message.Event(input.Id, "input", "Projekt2"));
+        input.Receive(Message.Event(input.Id, "change", "Projekt2"));
+        Assert.AreEqual(2, completed);
+
+        input.Receive(Message.Event(input.Id, "keydown", "Enter"));
+        Assert.AreEqual(3, completed);
+    }
+
+    [TestMethod]
     public void CheckBoxAndSwitchRaisePropertyAndControlEvents()
     {
         using var scope = app.Services.CreateScope();
@@ -181,17 +264,6 @@ public sealed class FormControlTests
     {
         using var scope = app.Services.CreateScope();
         var context = new MauiContext(scope.ServiceProvider);
-        var datePicker = new DatePicker { Date = new DateTime(2026, 7, 14) };
-        var date = (Input)datePicker.ToOouiElement(context);
-        Assert.AreEqual("2026-07-14", date.Value);
-        date.Receive(Message.Event(date.Id, "change", "2027-02-03"));
-        Assert.AreEqual(new DateTime(2027, 2, 3), datePicker.Date);
-
-        var timePicker = new TimePicker { Time = new TimeSpan(14, 5, 0) };
-        var time = (Input)timePicker.ToOouiElement(context);
-        Assert.AreEqual("14:05", time.Value);
-        time.Receive(Message.Event(time.Id, "change", "09:30"));
-        Assert.AreEqual(new TimeSpan(9, 30, 0), timePicker.Time);
 
         var searches = 0;
         var searchBar = new SearchBar { Placeholder = "Suchen" };
@@ -199,6 +271,81 @@ public sealed class FormControlTests
         var search = (TextInput)searchBar.ToOouiElement(context);
         search.Receive(Message.Event(search.Id, "keydown", "Enter"));
         Assert.AreEqual(1, searches);
+    }
+
+    [TestMethod]
+    public void DatePickerKeepsTheNativeValueAndShowsCustomFormatsInASpan()
+    {
+        using var scope = app.Services.CreateScope();
+        var context = new MauiContext(scope.ServiceProvider);
+        var datePicker = new DatePicker { Date = new DateTime(2027, 3, 5) };
+        var wrapper = (Div)datePicker.ToOouiElement(context);
+        var display = (Span)wrapper.Children[0];
+        var date = (Input)wrapper.Children[1];
+
+        Assert.AreEqual("relative", wrapper.Style["position"]);
+        Assert.AreEqual("none", display.Style["display"]);
+        Assert.AreEqual("2027-03-05", date.Value);
+        Assert.AreEqual("inherit", date.Style["position"]);
+
+        datePicker.Format = "dd.MM.yyyy";
+        Assert.AreEqual("inline-block", display.Style["display"]);
+        Assert.AreEqual("05.03.2027", display.Text);
+        Assert.AreEqual("2027-03-05", date.Value);
+        Assert.AreEqual("absolute", date.Style["position"]);
+
+        date.Receive(Message.Event(date.Id, "change", "2028-01-02"));
+        Assert.AreEqual(new DateTime(2028, 1, 2), datePicker.Date);
+        Assert.AreEqual("02.01.2028", display.Text);
+
+        datePicker.Format = "d";
+        Assert.AreEqual("none", display.Style["display"]);
+        Assert.AreEqual("inherit", date.Style["position"]);
+    }
+
+    [TestMethod]
+    public void TimePickerKeepsTheNativeValueAndShowsCustomFormatsInASpan()
+    {
+        using var scope = app.Services.CreateScope();
+        var context = new MauiContext(scope.ServiceProvider);
+        var timePicker = new TimePicker { Time = new TimeSpan(14, 5, 0) };
+        var wrapper = (Div)timePicker.ToOouiElement(context);
+        var display = (Span)wrapper.Children[0];
+        var time = (Input)wrapper.Children[1];
+
+        Assert.AreEqual("14:05", time.Value);
+        Assert.AreEqual("none", display.Style["display"]);
+
+        timePicker.Format = "HH.mm";
+        Assert.AreEqual("14.05", display.Text);
+        Assert.AreEqual("14:05", time.Value);
+
+        time.Receive(Message.Event(time.Id, "change", "09:30"));
+        Assert.AreEqual(new TimeSpan(9, 30, 0), timePicker.Time);
+        Assert.AreEqual("09.30", display.Text);
+
+        timePicker.Format = "t";
+        Assert.AreEqual("none", display.Style["display"]);
+    }
+
+    [TestMethod]
+    public void SliderAndSwitchMergeTheirColorsIntoAccentColor()
+    {
+        using var scope = app.Services.CreateScope();
+        var context = new MauiContext(scope.ServiceProvider);
+        var red = Microsoft.Maui.Graphics.Color.FromArgb("#FF0000");
+        var blue = Microsoft.Maui.Graphics.Color.FromArgb("#0000FF");
+
+        var slider = new Slider { MinimumTrackColor = red, ThumbColor = blue };
+        var range = (Input)slider.ToOouiElement(context);
+        Assert.AreEqual("#ff0000ff", range.Style["accent-color"].ToString()!.ToLowerInvariant());
+
+        var switchView = new Switch { OnColor = red, ThumbColor = blue };
+        var toggle = (Input)switchView.ToOouiElement(context);
+        Assert.AreEqual("#ff0000ff", toggle.Style["accent-color"].ToString()!.ToLowerInvariant());
+
+        switchView.OnColor = null!;
+        Assert.AreEqual("#0000ffff", toggle.Style["accent-color"].ToString()!.ToLowerInvariant());
     }
 
     [TestMethod]
