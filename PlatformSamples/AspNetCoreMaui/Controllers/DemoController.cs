@@ -26,6 +26,9 @@ public sealed class DemoController (IMauiContext mauiContext) : Controller
     [HttpGet ("/form")]
     public IActionResult Form () => Render ("Form · Ooui", Demos.Form (BrowserState));
 
+    [HttpGet ("/people")]
+    public IActionResult People () => Render ("People · Ooui", Demos.People (BrowserState));
+
     [HttpGet ("/controls")]
     public IActionResult Controls () => Render ("Controls · Ooui", Demos.Controls ());
 

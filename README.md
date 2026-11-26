@@ -86,12 +86,13 @@ Each WebSocket connection creates its own window and view hierarchy. Closing the
 | Pages and layout | `ContentPage`, `ContentView`, vertical/horizontal stacks, `Grid` (automatic and explicit placement), `FlexLayout`, `ScrollView`, `Border`, `BoxView` |
 | Forms | `Entry`, `Editor`, `CheckBox`, `Switch`, `Slider`, `Stepper`, `Picker`, `DatePicker`, `TimePicker`, `SearchBar` |
 | Display and feedback | `Label`, `Button`, `Image`, `ProgressBar`, `ActivityIndicator`, focus requests |
+| Collections | `CollectionView` with `ItemsSource` (including `INotifyCollectionChanged`), `ItemTemplate`, `EmptyView`, single/multiple selection, vertical/horizontal/grid `ItemsLayout` with `ItemSpacing` |
 
 Common text, font, color, sizing, padding, transformation, interaction, and enabled/visibility properties are mapped by the browser handlers. Browser edits update MAUI properties and bindings, while server-side changes update live DOM form values.
 
 ### Limitations
 
-This remains an experimental browser backend, **not a complete MAUI web platform**. `Shell`, navigation, `CollectionView`, and accessibility/localization infrastructure are not implemented. Layout uses browser CSS rather than complete MAUI text measurement and native layout semantics. `Image` currently supports URL and file-name sources, `DatePicker`/`TimePicker` do not apply custom `Format` values, and `Stepper` is represented by a number input. The built-in server hosts application logic and per-session state on the server; it is not a client-side MAUI runtime. Production deployment, authentication, reconnect behavior, and scale-out require additional application design and validation.
+This remains an experimental browser backend, **not a complete MAUI web platform**. `Shell`, navigation, and accessibility/localization infrastructure are not implemented. Layout uses browser CSS rather than complete MAUI text measurement and native layout semantics. `CollectionView` renders every item at once (no virtualization) and ignores grouping, headers and footers, scroll events, and `RefreshView`. `Image` currently supports URL and file-name sources, `DatePicker`/`TimePicker` do not apply custom `Format` values, and `Stepper` is represented by a number input. The built-in server hosts application logic and per-session state on the server; it is not a client-side MAUI runtime. Production deployment, authentication, reconnect behavior, and scale-out require additional application design and validation.
 
 Run the focused handler and session tests with:
 

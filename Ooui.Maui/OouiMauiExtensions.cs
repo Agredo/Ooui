@@ -42,6 +42,7 @@ public static class OouiMauiExtensions
             handlers.AddHandler<Grid, GridHandler>();
             handlers.AddHandler<FlexLayout, FlexLayoutHandler>();
             handlers.AddHandler<ScrollView, ScrollViewHandler>();
+            handlers.AddHandler<CollectionView, CollectionViewHandler>();
             handlers.AddHandler<Border, BorderHandler>();
             handlers.AddHandler<Microsoft.Maui.Controls.Image, ImageHandler>();
             handlers.AddHandler<ProgressBar, ProgressBarHandler>();

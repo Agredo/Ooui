@@ -26,6 +26,7 @@ static class DemoStyles
         ("/", "Overview"),
         ("/counter", "Counter"),
         ("/form", "Form"),
+        ("/people", "People"),
         ("/controls", "Controls"),
         ("/reset", "Reset session"),
     };
@@ -70,6 +71,13 @@ static class DemoStyles
                                   border-radius: 50%; background: #fff; transition: transform .2s; }
             .ooui-switch:checked { background: #6854d9; }
             .ooui-switch:checked::after { transform: translateX(20px); }
+            [role="listbox"] > [role="option"], [role="list"] > [role="listitem"] {
+                border-radius: 16px; transition: box-shadow .15s; }
+            [role="listbox"] > [role="option"] { cursor: pointer; }
+            [role="listbox"] > [role="option"]:hover { box-shadow: 0 0 0 2px #d9d3ff; }
+            [role="listbox"] > [role="option"][aria-selected="true"] { box-shadow: 0 0 0 2px #6854d9; }
+            [role="listbox"] > [role="option"]:focus-visible,
+            [role="list"] > [role="listitem"]:focus-visible { outline: 2px solid #8f7dff; outline-offset: 2px; }
             @keyframes ooui-spin { to { transform: rotate(360deg); } }
             @media (max-width: 720px) {
                 #ooui-body { padding: 16px 12px 40px !important; }
