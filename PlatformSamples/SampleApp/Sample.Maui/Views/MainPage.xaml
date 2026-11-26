@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:res="clr-namespace:Sample.Maui.Resources"
+             xmlns:vm="clr-namespace:Sample.ViewModels;assembly=Sample.ViewModels"
+             x:Class="Sample.Maui.Views.MainPage"
+             x:DataType="vm:MainViewModel"
+             Title="Home">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <res:SampleStyles />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <ScrollView>
+        <VerticalStackLayout Padding="24" Spacing="18">
+
+            <Border Style="{StaticResource HeroCard}">
+                <VerticalStackLayout Spacing="10">
+                    <Label Style="{StaticResource Eyebrow}" Text=".NET MAUI · CommunityToolkit.Mvvm" />
+                    <Label Style="{StaticResource HeroHeading}"
+                           Text="Hello, World!"
+                           AutomationId="hero-title" />
+                    <Label Style="{StaticResource HeroBody}"
+                           Text="Welcome to .NET Multi-platform App UI. This is the template's counter page, with its models, services and view models in projects of their own." />
+                    <Label Style="{StaticResource HeroChip}"
+                           Text="{Binding BackendName}"
+                           AutomationId="backend-name" />
+                    <Label Style="{StaticResource HeroBody}"
+                           Text="{Binding BackendSummary}"
+                           AutomationId="backend-summary" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="14">
+                    <Label Style="{StaticResource CardHeading}" Text="Counter" />
+                    <Label Style="{StaticResource Counter}"
+                           Text="{Binding CountText}"
+                           AutomationId="counter-label" />
+                    <Button Style="{StaticResource PrimaryButton}"
+                            Text="Click me"
+                            Command="{Binding IncrementCommand}"
+                            AutomationId="counter-button" />
+                    <Label Style="{StaticResource Note}"
+                           Text="{Binding Status}"
+                           AutomationId="counter-status" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="12">
+                    <Label Style="{StaticResource CardHeading}" Text="A second page" />
+                    <Label Style="{StaticResource Body}"
+                           Text="The details page is part of the same app and binds to the same services. Its view model is created by the same container, on every backend." />
+                    <Label Style="{StaticResource Note}"
+                           Text="{Binding BackendProject, StringFormat='Hosted by {0}'}"
+                           AutomationId="backend-project" />
+                    <Button Style="{StaticResource SecondaryButton}"
+                            Text="Open the details page"
+                            Command="{Binding OpenDetailsCommand}"
+                            AutomationId="open-details" />
+                </VerticalStackLayout>
+            </Border>
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- The pure MAUI app: one XAML window with two pages, built from the view models and services of
+       the projects next to it. It knows nothing about Ooui or about the hosts that render it. -->
+  <PropertyGroup>
+    <TargetFramework>net11.0</TargetFramework>
+    <UseMaui>true</UseMaui>
+    <SkipValidateMauiImplicitPackageReferences>true</SkipValidateMauiImplicitPackageReferences>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Sample.Maui</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Maui.Controls" Version="11.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Sample.Models\Sample.Models.csproj" />
+    <ProjectReference Include="..\Sample.Services\Sample.Services.csproj" />
+    <ProjectReference Include="..\Sample.ViewModels\Sample.ViewModels.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ooui &middot; the MAUI sample in WebAssembly</title>
+  <style>
+    :root {
+      color-scheme: light;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100%;
+    }
+
+    body {
+      background: #f4f6fb;
+      color: #172238;
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      line-height: 1.5;
+    }
+
+    .sample-host {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 12px 18px;
+      padding: 14px 24px;
+      background: #17213f;
+      color: #d3d0ef;
+    }
+
+    .sample-brand {
+      font-weight: 700;
+      letter-spacing: .4px;
+      color: #fff;
+    }
+
+    .sample-brand em {
+      color: #bdb5ff;
+      font-style: normal;
+    }
+
+    .sample-note {
+      font-size: 13px;
+    }
+
+    /* The MAUI window is rendered into this node. */
+    #ooui-body {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 24px 16px 56px;
+    }
+
+    #loading {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f4f6fb;
+      color: #6f7990;
+      font-size: 13px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      z-index: 10;
+    }
+
+    #loading[hidden] {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+  <header class="sample-host">
+    <span class="sample-brand">Ooui <em>&times;</em> MAUI 11</span>
+    <span class="sample-note">the same MAUI app, running in this tab as WebAssembly</span>
+  </header>
+  <main id="ooui-body"></main>
+  <div id="loading">Starting .NET and MAUI</div>
+  <script src="ooui-client.js"></script>
+  <script type="module" src="main.js"></script>
+</body>
+
+</html>

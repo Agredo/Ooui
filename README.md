@@ -310,6 +310,51 @@ Three details are easy to get wrong when serving a Wasm bundle from Kestrel:
 - Both paths share `UI.HeadHtml`, so the same dark card style applies whether the page came from Kestrel or from the tab.
 
 
+## One MAUI app, three backends
+
+`PlatformSamples/SampleApp` is the answer to a stricter question than the samples above: take an ordinary MAUI app — the app template's counter page plus a second page — split it the way a real MAUI solution is split, and then host *that* app on three different web backends without touching it.
+
+The app is four projects that know nothing about Ooui or HTML:
+
+| Project | Contains |
+| --- | --- |
+| `Sample.Models` | `BackendInfo`, `BackendKind`, `AppRoute` — data only, no packages |
+| `Sample.Services` | `ICounterService`, `IAppNavigator`, `IStateStore` and their default implementations |
+| `Sample.ViewModels` | `MainViewModel`, `DetailsViewModel` — Community Toolkit MVVM, `[ObservableProperty]`, `[RelayCommand]` |
+| `Sample.Maui` | `App`, the two XAML pages, the styles and the DI wiring (`AddSampleApp`) |
+
+Three hosts then reference those projects and differ only in how a page reaches a browser:
+
+| Host | `net11.0` | Front end |
+| --- | --- | --- |
+| `Sample.Ooui.Wasm` | `browser-wasm`, published bundle | the whole app runs in the tab; Ooui writes into the DOM |
+| `Sample.Ooui.AspNetCore` | Kestrel | one `ElementResult` per request, kept live over `/ooui.ws` |
+| `Sample.Ooui.AspNetCoreWasm` | Kestrel + `browser-wasm` | the same app twice: Kestrel at `/`, the bundle at `/wasm/` |
+
+```bash
+dotnet run --project PlatformSamples/SampleApp/Sample.Ooui.AspNetCore/Sample.Ooui.AspNetCore.csproj   # http://localhost:8101
+
+# the WebAssembly half needs its own publish with a runtime identifier
+dotnet publish PlatformSamples/SampleApp/Sample.Ooui.Wasm/Sample.Ooui.Wasm.csproj -c Release
+dotnet run --project PlatformSamples/SampleApp/Sample.Ooui.AspNetCoreWasm/Sample.Ooui.AspNetCoreWasm.csproj   # / and /wasm/ on 8103
+```
+
+The published bundle of `Sample.Ooui.Wasm` is also a complete website on its own — any static file server can host it, no Ooui server needed:
+
+```bash
+cd PlatformSamples/SampleApp/Sample.Ooui.Wasm/bin/Release/net11.0/browser-wasm/publish
+python -m http.server 8102      # http://localhost:8102/
+```
+
+What makes one view model work on all of them is that navigation is a service, not a platform call. `IAppNavigator` (`NavigateAsync (AppRoute)`, `GoBackAsync ()`) is the only seam: the view models never see a `NavigationPage`, and each host decides what a navigation means. In all three hosts it means the real thing, because `NavigationPageHandler` keeps the page stack of a session alive — on WebAssembly in the tab itself, on ASP.NET Core in the browser's WebSocket session. Pushing `DetailsPage` is therefore a push in every host, and the back button and `window.location.hash` (`#/main`, `#/main/details`) behave the same.
+
+Two details are worth knowing if you build your own host:
+
+- **Session-scoped state.** `IStateStore` has an in-memory default for process-wide state. The ASP.NET Core hosts replace it per request with `UserSessionStateStore`, which stores into `HttpContext.GetOouiUserSession ()`, so the counter of one browser survives a reload without leaking into another browser.
+- **Per-request view models.** `SamplePages.CreateSessionRoot (services, counter)` builds the `NavigationPage` *and* the navigator that pushes onto it (`ActivatorUtilities.CreateInstance` passes the request's counter service into both the page's view model and the pushed one). The live hosts use `CreateRootPage (services)` and let DI do the same job.
+
+Verified in Chromium with Playwright on every path: the counter increments, `DetailsPage` is pushed and popped, the hash follows the stack, no JavaScript errors — and on ASP.NET Core the counter survives a full page reload.
+
 ## Example App
 
 Here is the complete source code to a fully collaborative button clicking app.

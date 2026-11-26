@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+                    x:Class="Sample.Maui.Resources.SampleStyles">
+
+    <!-- The palette and the styles both pages use. It is a resource dictionary instead of an
+         App.xaml entry because the ASP.NET Core host creates the pages without an application. -->
+    <Color x:Key="Ink">#172238</Color>
+    <Color x:Key="Muted">#6f7990</Color>
+    <Color x:Key="Accent">#6854d9</Color>
+    <Color x:Key="AccentSoft">#efeaff</Color>
+    <Color x:Key="Edge">#e0e5f0</Color>
+    <Color x:Key="Surface">#ffffff</Color>
+    <Color x:Key="Sunken">#eef0f7</Color>
+    <Color x:Key="Night">#17213f</Color>
+    <Color x:Key="NightAccent">#bdb5ff</Color>
+    <Color x:Key="NightText">#d3d0ef</Color>
+
+    <Style x:Key="HeroCard" TargetType="Border">
+        <Setter Property="BackgroundColor" Value="{StaticResource Night}" />
+        <Setter Property="Stroke" Value="{StaticResource Night}" />
+        <Setter Property="StrokeThickness" Value="1" />
+        <Setter Property="Padding" Value="24,22" />
+        <Setter Property="StrokeShape">
+            <Setter.Value>
+                <RoundRectangle CornerRadius="16" />
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="Card" TargetType="Border">
+        <Setter Property="BackgroundColor" Value="{StaticResource Surface}" />
+        <Setter Property="Stroke" Value="{StaticResource Edge}" />
+        <Setter Property="StrokeThickness" Value="1" />
+        <Setter Property="Padding" Value="20" />
+        <Setter Property="StrokeShape">
+            <Setter.Value>
+                <RoundRectangle CornerRadius="16" />
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="Eyebrow" TargetType="Label">
+        <Setter Property="TextColor" Value="{StaticResource NightAccent}" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontAttributes" Value="Bold" />
+    </Style>
+
+    <Style x:Key="HeroHeading" TargetType="Label">
+        <Setter Property="TextColor" Value="{StaticResource Surface}" />
+        <Setter Property="FontSize" Value="38" />
+        <Setter Property="FontAttributes" Value="Bold" />
+    </Style>
+
+    <Style x:Key="HeroBody" TargetType="Label">
+        <Setter Property="TextColor" Value="{StaticResource NightText}" />
+        <Setter Property="FontSize" Value="15" />
+        <Setter Property="LineHeight" Value="1.4" />
+    </Style>
+
+    <Style x:Key="HeroChip" TargetType="Label">
+        <Setter Property="TextColor" Value="{StaticResource Night}" />
+        <Setter Property="BackgroundColor" Value="{StaticResource NightAccent}" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="FontAttributes" Value="Bold" />
+        <Setter Property="Padding" Value="10,4" />
+        <Setter Property="HorizontalOptions" Value="Start" />
+    </Style>
+
+    <Style x:Key="CardHeading" TargetType="Label">
+        <Setter Property="TextColor" Value="{StaticResource Ink}" />
+        <Setter Property="FontSize" Value="19" />
+        <Setter Property="FontAttributes" Value="Bold" />
+    </Style>
+
+    <Style x:Key="Body" TargetType="Label">
+        <Setter Property="TextColor" Value="{StaticResource Ink}" />
+        <Setter Property="FontSize" Value="15" />
+        <Setter Property="LineHeight" Value="1.4" />
+    </Style>
+
+    <Style x:Key="Note" TargetType="Label">
+        <Setter Property="TextColor" Value="{StaticResource Muted}" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="LineHeight" Value="1.4" />
+    </Style>
+
+    <Style x:Key="Counter" TargetType="Label">
+        <Setter Property="TextColor" Value="{StaticResource Ink}" />
+        <Setter Property="FontSize" Value="30" />
+        <Setter Property="FontAttributes" Value="Bold" />
+    </Style>
+
+    <Style x:Key="PrimaryButton" TargetType="Button">
+        <Setter Property="TextColor" Value="{StaticResource Surface}" />
+        <Setter Property="BackgroundColor" Value="{StaticResource Accent}" />
+        <Setter Property="FontSize" Value="15" />
+        <Setter Property="CornerRadius" Value="10" />
+        <Setter Property="HeightRequest" Value="44" />
+        <Setter Property="Padding" Value="20,0" />
+        <Setter Property="HorizontalOptions" Value="Start" />
+    </Style>
+
+    <Style x:Key="SecondaryButton" TargetType="Button">
+        <Setter Property="TextColor" Value="{StaticResource Accent}" />
+        <Setter Property="BackgroundColor" Value="{StaticResource AccentSoft}" />
+        <Setter Property="FontSize" Value="15" />
+        <Setter Property="CornerRadius" Value="10" />
+        <Setter Property="HeightRequest" Value="44" />
+        <Setter Property="Padding" Value="20,0" />
+        <Setter Property="HorizontalOptions" Value="Start" />
+    </Style>
+
+</ResourceDictionary>

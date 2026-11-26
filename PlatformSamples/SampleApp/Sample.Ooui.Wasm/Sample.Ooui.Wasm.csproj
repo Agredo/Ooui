@@ -1,0 +1,67 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- The pure MAUI app compiled for the browser: MAUI builds the view hierarchy, the Ooui handlers
+       render it into the DOM, and the counter lives in this tab. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net11.0</TargetFramework>
+    <RuntimeIdentifier>browser-wasm</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <UseMonoRuntime>true</UseMonoRuntime>
+    <UseMaui>true</UseMaui>
+    <SkipValidateMauiImplicitPackageReferences>true</SkipValidateMauiImplicitPackageReferences>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Sample.Ooui.Wasm</RootNamespace>
+    <WasmMainJSPath>wwwroot\main.js</WasmMainJSPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Maui.Controls" Version="11.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Ooui.Maui\Ooui.Maui.csproj" />
+    <ProjectReference Include="..\Sample.Maui\Sample.Maui.csproj" />
+    <ProjectReference Include="..\Sample.Models\Sample.Models.csproj" />
+    <ProjectReference Include="..\Sample.Services\Sample.Services.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <WebAsset Include="wwwroot\index.html" />
+    <WebAsset Include="wwwroot\main.js" />
+  </ItemGroup>
+
+  <Target Name="DeployWebAssets" AfterTargets="Publish">
+    <Copy SourceFiles="@(WebAsset)" DestinationFolder="$(PublishDir)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="..\..\..\Ooui\Client.js" DestinationFiles="$(PublishDir)ooui-client.js" SkipUnchangedFiles="true" />
+  </Target>
+
+  <!-- .NET 11 does not emit a boot manifest for plain Wasm apps, so the resource list is written here.
+       See the "Browser WebAssembly" section of the README for the details. -->
+  <Target Name="GenerateWasmBootConfig" AfterTargets="DeployWebAssets">
+    <ItemGroup>
+      <_WasmAppAssembly Include="$(PublishDir)*.dll" />
+    </ItemGroup>
+    <PropertyGroup>
+      <_WasmAppAssemblyList>@(_WasmAppAssembly->'{&quot;name&quot;:&quot;%(Filename)%(Extension)&quot;}', ',')</_WasmAppAssemblyList>
+      <_WasmBootJson>{&quot;mainAssemblyName&quot;:&quot;$(AssemblyName)&quot;,&quot;globalizationMode&quot;:&quot;sharded&quot;,&quot;resources&quot;:{&quot;wasmNative&quot;:[{&quot;name&quot;:&quot;dotnet.native.wasm&quot;}],&quot;jsModuleNative&quot;:[{&quot;name&quot;:&quot;dotnet.native.js&quot;}],&quot;jsModuleRuntime&quot;:[{&quot;name&quot;:&quot;dotnet.runtime.js&quot;}],&quot;icu&quot;:[{&quot;name&quot;:&quot;icudt.dat&quot;,&quot;virtualPath&quot;:&quot;icudt.dat&quot;},{&quot;name&quot;:&quot;icudt_EFIGS.dat&quot;,&quot;virtualPath&quot;:&quot;icudt_EFIGS.dat&quot;},{&quot;name&quot;:&quot;icudt_CJK.dat&quot;,&quot;virtualPath&quot;:&quot;icudt_CJK.dat&quot;},{&quot;name&quot;:&quot;icudt_no_CJK.dat&quot;,&quot;virtualPath&quot;:&quot;icudt_no_CJK.dat&quot;}],&quot;coreAssembly&quot;:[$(_WasmAppAssemblyList)]}}</_WasmBootJson>
+    </PropertyGroup>
+    <WriteLinesToFile File="$(PublishDir)wasm-boot.json" Lines="$(_WasmBootJson)" Overwrite="true" WriteOnlyWhenDifferent="true" />
+  </Target>
+
+  <Target Name="PruneWasmPublishOutput" AfterTargets="GenerateWasmBootConfig">
+    <ItemGroup>
+      <_WasmBuildInput Include="$(PublishDir)**\*" />
+      <_WasmBuildInput Remove="$(PublishDir)**\*.dll" />
+      <_WasmBuildInput Remove="$(PublishDir)**\*.js" />
+      <_WasmBuildInput Remove="$(PublishDir)**\*.wasm" />
+      <_WasmBuildInput Remove="$(PublishDir)**\*.dat" />
+      <_WasmBuildInput Remove="$(PublishDir)**\*.html" />
+      <_WasmBuildInput Remove="$(PublishDir)**\*.json" />
+    </ItemGroup>
+    <Delete Files="@(_WasmBuildInput)" />
+  </Target>
+
+</Project>

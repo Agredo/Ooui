@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:res="clr-namespace:Sample.Maui.Resources"
+             xmlns:models="clr-namespace:Sample.Models;assembly=Sample.Models"
+             xmlns:vm="clr-namespace:Sample.ViewModels;assembly=Sample.ViewModels"
+             x:Class="Sample.Maui.Views.DetailsPage"
+             x:DataType="vm:DetailsViewModel"
+             Title="Details">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <res:SampleStyles />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <ScrollView>
+        <VerticalStackLayout Padding="24" Spacing="18">
+
+            <Border Style="{StaticResource HeroCard}">
+                <VerticalStackLayout Spacing="10">
+                    <Label Style="{StaticResource Eyebrow}" Text="The second page of the same app" />
+                    <Label Style="{StaticResource HeroHeading}"
+                           Text="Details"
+                           AutomationId="details-title" />
+                    <Label Style="{StaticResource HeroBody}"
+                           Text="Nothing on this page knows how it reached your browser. The view model was created by the container of the host and filled with the services of the app." />
+                    <Label Style="{StaticResource HeroChip}"
+                           Text="{Binding BackendName}"
+                           AutomationId="details-backend" />
+                    <Label Style="{StaticResource HeroBody}"
+                           Text="{Binding BackendProject}"
+                           AutomationId="details-project" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="10">
+                    <Label Style="{StaticResource CardHeading}" Text="The counter is shared" />
+                    <Label Style="{StaticResource Body}"
+                           Text="{Binding CountText}"
+                           AutomationId="details-counter" />
+                    <Label Style="{StaticResource Note}"
+                           Text="{Binding LastClickText}"
+                           AutomationId="details-last-click" />
+                    <Label Style="{StaticResource Note}"
+                           Text="The number lives in the counter service, so it survives this navigation - and on the ASP.NET Core host even a new request." />
+                </VerticalStackLayout>
+            </Border>
+
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="12">
+                    <Label Style="{StaticResource CardHeading}" Text="Where this app can run" />
+                    <Label Style="{StaticResource Note}"
+                           Text="The same projects, the same XAML, three backends:" />
+
+                    <CollectionView ItemsSource="{Binding Backends}"
+                                    SelectionMode="None"
+                                    AutomationId="backend-list">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="models:BackendInfo">
+                                <Border BackgroundColor="{StaticResource Surface}"
+                                        Stroke="{StaticResource Edge}"
+                                        StrokeThickness="1"
+                                        Padding="14,12">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="12" />
+                                    </Border.StrokeShape>
+                                    <VerticalStackLayout Spacing="4">
+                                        <Label Text="{Binding Name}"
+                                               FontSize="16"
+                                               FontAttributes="Bold"
+                                               TextColor="{StaticResource Ink}" />
+                                        <Label Text="{Binding Project}"
+                                               FontSize="13"
+                                               FontAttributes="Bold"
+                                               TextColor="{StaticResource Accent}" />
+                                        <Label Text="{Binding Summary}"
+                                               FontSize="14"
+                                               TextColor="{StaticResource Muted}" />
+                                    </VerticalStackLayout>
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </VerticalStackLayout>
+            </Border>
+
+            <HorizontalStackLayout Spacing="12">
+                <Button Style="{StaticResource PrimaryButton}"
+                        Text="Back"
+                        Command="{Binding GoBackCommand}"
+                        AutomationId="go-back" />
+                <Button Style="{StaticResource SecondaryButton}"
+                        Text="Home"
+                        Command="{Binding GoHomeCommand}"
+                        AutomationId="go-home" />
+            </HorizontalStackLayout>
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

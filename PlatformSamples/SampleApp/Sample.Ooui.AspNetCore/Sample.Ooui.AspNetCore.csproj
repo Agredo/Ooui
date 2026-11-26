@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Renders the pure MAUI app with ASP.NET Core MVC: one request builds the page tree, Ooui
+       keeps it alive over a WebSocket, and every browser gets its own session. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net11.0</TargetFramework>
+    <UseMaui>true</UseMaui>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <SkipValidateMauiImplicitPackageReferences>true</SkipValidateMauiImplicitPackageReferences>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Maui.Controls" Version="11.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Ooui.Maui\Ooui.Maui.csproj" />
+    <ProjectReference Include="..\..\..\Ooui.AspNetCore\Ooui.AspNetCore.csproj" />
+    <ProjectReference Include="..\Sample.Maui\Sample.Maui.csproj" />
+    <ProjectReference Include="..\Sample.Models\Sample.Models.csproj" />
+    <ProjectReference Include="..\Sample.Services\Sample.Services.csproj" />
+  </ItemGroup>
+
+</Project>
