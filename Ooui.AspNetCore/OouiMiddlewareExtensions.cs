@@ -1,11 +1,13 @@
 ﻿using System;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Ooui.AspNetCore;
 
 namespace Microsoft.AspNetCore.Builder
 {
     public static class OouiMiddlewareExtensions
     {
-        public static void UseOoui (this IApplicationBuilder app, string jsPath = "/ooui.js", string webSocketPath = "/ooui.ws", TimeSpan? sessionTimeout = null)
+        public static IApplicationBuilder UseOoui (this IApplicationBuilder app, string jsPath = "/ooui.js", string webSocketPath = "/ooui.ws", TimeSpan? sessionTimeout = null)
         {
             if (string.IsNullOrWhiteSpace (webSocketPath))
                 throw new ArgumentException ("A path to be used for Ooui web sockets must be specified", nameof (webSocketPath));
@@ -21,7 +23,6 @@ namespace Microsoft.AspNetCore.Builder
 
             var webSocketOptions = new WebSocketOptions () {
                 KeepAliveInterval = WebSocketHandler.SessionTimeout,
-                ReceiveBufferSize = 4 * 1024
             };
             app.UseWebSockets (webSocketOptions);
 
@@ -29,52 +30,46 @@ namespace Microsoft.AspNetCore.Builder
 
             app.Use (async (context, next) =>
             {
-                var response = context.Response;
-
                 if (context.Request.Path == jsPath) {
-                    var clientJsBytes = Ooui.UI.ClientJsBytes;
-                    var clientJsEtag = Ooui.UI.ClientJsEtag;
-                    if (context.Request.Headers.TryGetValue ("If-None-Match", out var inms) && inms.Count > 0 && inms[0] == clientJsEtag) {
-                        response.StatusCode = 304;
-                    }
-                    else {
-                        response.StatusCode = 200;
-                        response.ContentLength = clientJsBytes.Length;
-                        response.ContentType = "application/javascript; charset=utf-8";
-                        response.Headers.Add ("Cache-Control", "public, max-age=60");
-                        response.Headers.Add ("Etag", clientJsEtag);
-                        using (var s = response.Body) {
-                            await s.WriteAsync (clientJsBytes, 0, clientJsBytes.Length).ConfigureAwait (false);
-                        }
-                    }
+                    await WriteCachedContentAsync (context, Ooui.UI.ClientJsBytes, Ooui.UI.ClientJsEtag, "application/javascript; charset=utf-8").ConfigureAwait (false);
                 }
                 else if (context.Request.Path == WebSocketHandler.WebSocketPath) {
                     if (context.WebSockets.IsWebSocketRequest) {
                         await WebSocketHandler.HandleWebSocketRequestAsync (context).ConfigureAwait (false);
                     }
                     else {
-                        context.Response.StatusCode = 400;
+                        context.Response.StatusCode = StatusCodes.Status400BadRequest;
                     }
                 }
                 else if (Ooui.UI.TryGetFileContentAtPath (context.Request.Path, out var file)) {
-                    if (context.Request.Headers.TryGetValue ("If-None-Match", out var inms) && inms.Count > 0 && inms[0] == file.Etag) {
-                        response.StatusCode = 304;
-                    }
-                    else {
-                        response.StatusCode = 200;
-                        response.ContentLength = file.Content.Length;
-                        response.ContentType = file.ContentType;
-                        response.Headers.Add ("Cache-Control", "public, max-age=60");
-                        response.Headers.Add ("Etag", file.Etag);
-                        using (var s = response.Body) {
-                            await s.WriteAsync (file.Content, 0, file.Content.Length).ConfigureAwait (false);
-                        }
-                    }
+                    await WriteCachedContentAsync (context, file.Content, file.Etag, file.ContentType).ConfigureAwait (false);
                 }
                 else {
                     await next ().ConfigureAwait (false);
                 }
             });
+
+            return app;
+        }
+
+        static async Task WriteCachedContentAsync (HttpContext context, byte[] content, string etag, string contentType)
+        {
+            var response = context.Response;
+
+            if (!string.IsNullOrEmpty (etag) && string.Equals (context.Request.Headers.IfNoneMatch, etag, StringComparison.Ordinal)) {
+                response.StatusCode = StatusCodes.Status304NotModified;
+                return;
+            }
+
+            response.StatusCode = StatusCodes.Status200OK;
+            response.ContentType = contentType;
+            response.ContentLength = content.Length;
+            response.Headers.CacheControl = "public, max-age=60";
+            if (!string.IsNullOrEmpty (etag)) {
+                response.Headers.ETag = etag;
+            }
+
+            await response.Body.WriteAsync (content.AsMemory ()).ConfigureAwait (false);
         }
     }
 }

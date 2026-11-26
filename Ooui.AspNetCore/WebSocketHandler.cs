@@ -38,26 +38,26 @@ namespace Ooui.AspNetCore
 
         public static async Task HandleWebSocketRequestAsync (HttpContext context)
         {
-            void BadRequest (string message)
+            async Task BadRequest (string message)
             {
                 context.Response.StatusCode = StatusCodes.Status400BadRequest;
                 context.Response.ContentType = "text/plain; charset=utf-8";
-                using (var sw = new System.IO.StreamWriter (context.Response.Body)) {
-                    sw.WriteLine (message);
-                }
+                var bytes = System.Text.Encoding.UTF8.GetBytes (message + "\n");
+                context.Response.ContentLength = bytes.Length;
+                await context.Response.Body.WriteAsync (bytes.AsMemory ()).ConfigureAwait (false);
             }
 
             //
             // Make sure we get a good ID
             //
             if (!context.Request.Query.TryGetValue ("id", out var idValues)) {
-                BadRequest ("Missing `id`");
+                await BadRequest ("Missing `id`").ConfigureAwait (false);
                 return;
             }
 
             var id = idValues.LastOrDefault ();
             if (id == null || id.Length != 32) {
-                BadRequest ("Invalid `id`");
+                await BadRequest ("Invalid `id`").ConfigureAwait (false);
                 return;
             }
 
@@ -70,24 +70,26 @@ namespace Ooui.AspNetCore
             }
 
             //
-            // Find the pending session
+            // Set the element's dimensions
             //
-            if (!pendingSessions.TryRemove (id, out var activeSession)) {
-                BadRequest ("Unknown `id`");
+            if (!context.Request.Query.TryGetValue ("w", out var wValues) || wValues.Count < 1) {
+                await BadRequest ("Missing `w`").ConfigureAwait (false);
+                return;
+            }
+            if (!context.Request.Query.TryGetValue ("h", out var hValues) || hValues.Count < 1) {
+                await BadRequest ("Missing `h`").ConfigureAwait (false);
                 return;
             }
 
             //
-            // Set the element's dimensions
+            // Find the pending session
             //
-            if (!context.Request.Query.TryGetValue ("w", out var wValues) || wValues.Count < 1) {
-                BadRequest ("Missing `w`");
+            if (!pendingSessions.TryRemove (id, out var activeSession)) {
+                await BadRequest ("Unknown `id`").ConfigureAwait (false);
                 return;
             }
-            if (!context.Request.Query.TryGetValue ("h", out var hValues) || hValues.Count < 1) {
-                BadRequest ("Missing `h`");
-                return;
-            }
+
+
             var icult = System.Globalization.CultureInfo.InvariantCulture;
             if (!double.TryParse (wValues.Last (), System.Globalization.NumberStyles.Any, icult, out var w))
                 w = 640;

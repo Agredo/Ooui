@@ -24,24 +24,23 @@ namespace Ooui.AspNetCore
 
         public override async Task ExecuteResultAsync (ActionContext context)
         {
-            var response = context.HttpContext.Response;
-            response.StatusCode = 200;
+            var httpContext = context.HttpContext;
+            var response = httpContext.Response;
+            response.StatusCode = StatusCodes.Status200OK;
             response.ContentType = "text/html; charset=utf-8";
-            response.Headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
+            response.Headers.CacheControl = "no-cache, no-store, must-revalidate";
 
             if (element.WantsFullScreen) {
-                element.Style.Width = GetCookieDouble (context.HttpContext.Request.Cookies, "oouiWindowWidth", 32, 640, 10000);
-                element.Style.Height = GetCookieDouble (context.HttpContext.Request.Cookies, "oouiWindowHeight", 24, 480, 10000);
+                element.Style.Width = GetCookieDouble (httpContext.Request.Cookies, "oouiWindowWidth", 32, 640, 10000);
+                element.Style.Height = GetCookieDouble (httpContext.Request.Cookies, "oouiWindowHeight", 24, 480, 10000);
             }
 
-            var sessionId = WebSocketHandler.BeginSession (context.HttpContext, element, disposeAfterSession, logger);
+            var sessionId = WebSocketHandler.BeginSession (httpContext, element, disposeAfterSession, logger);
             var initialHtml = element.OuterHtml;
             var html = UI.RenderTemplate (WebSocketHandler.WebSocketPath + "?id=" + sessionId, title: title, initialHtml: initialHtml);
             var htmlBytes = Encoding.UTF8.GetBytes (html);
             response.ContentLength = htmlBytes.Length;
-            using (var s = response.Body) {
-                await s.WriteAsync (htmlBytes, 0, htmlBytes.Length).ConfigureAwait (false);
-            }
+            await response.Body.WriteAsync (htmlBytes.AsMemory ()).ConfigureAwait (false);
         }
 
         static double GetCookieDouble (IRequestCookieCollection cookies, string key, double min, double def, double max)

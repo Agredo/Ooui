@@ -1,0 +1,278 @@
+using Microsoft.Maui.Controls;
+using Microsoft.Maui.Controls.Shapes;
+using Microsoft.Maui.Graphics;
+
+namespace AspNetCoreMaui;
+
+/// <summary>
+/// The pages rendered by <see cref="Controllers.DemoController"/>. They are ordinary MAUI pages:
+/// no HTML, no JavaScript, no view models required.
+/// </summary>
+static class Demos
+{
+    static readonly Color Ink = Color.FromArgb ("#172238");
+    static readonly Color Muted = Color.FromArgb ("#6f7990");
+    static readonly Color Accent = Color.FromArgb ("#6854d9");
+    static readonly Color Line = Color.FromArgb ("#e0e5f0");
+    static readonly Color Success = Color.FromArgb ("#31846a");
+    static readonly Color Danger = Color.FromArgb ("#bb3d57");
+
+    public const string LogoSvg = """
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96">
+          <rect x="4" y="4" width="88" height="88" rx="22" fill="#17213f"/>
+          <circle cx="48" cy="54" r="19" fill="none" stroke="#8f7dff" stroke-width="9"/>
+          <path d="M34 28h28" stroke="#8f7dff" stroke-width="9" stroke-linecap="round"/>
+        </svg>
+        """;
+
+    public static ContentPage Overview () => Page (
+        new Border {
+            AutomationId = "hero",
+            BackgroundColor = Color.FromArgb ("#17213f"),
+            StrokeThickness = 0,
+            StrokeShape = new RoundRectangle { CornerRadius = 24 },
+            Padding = new Thickness (34),
+            Content = new VerticalStackLayout {
+                Spacing = 14,
+                Children = {
+                    new Label { Text = "OOUI  /  MAUI 11  /  ASP.NET CORE", TextColor = Color.FromArgb ("#bdb5ff"), FontSize = 13, CharacterSpacing = 2 },
+                    new Label { Text = "Your next website, written in C#.", TextColor = Colors.White, FontSize = 42, FontAttributes = FontAttributes.Bold, AutomationId = "hero-title" },
+                    new Label { Text = "Familiar .NET controls become native browser elements. State stays on the server, every tab gets its own page.", TextColor = Color.FromArgb ("#d3d0ef"), FontSize = 18, LineHeight = 1.35 },
+                },
+            },
+        },
+        Card ("Server-rendered MAUI",
+            "Ooui.Maui registers a MAUI handler per control and translates the visual tree into HTML elements.",
+            Body ("A click is sent over the WebSocket, handled in C#, and only the changed attributes are sent back.")),
+        Card ("One page per session",
+            "Every request to a demo route builds a new ContentPage. Two browser tabs never share state.",
+            Body ("Open the counter in a second tab and count on both: the numbers stay independent.")),
+        Card ("A small, honest foundation",
+            "Labels, buttons, inputs, pickers, sliders, grids, borders and a few more controls are supported.",
+            Small ("Navigation, CollectionView, Shell and animations are not implemented yet. This sample is a demonstration, not a production platform.")));
+
+    public static ContentPage Counter ()
+    {
+        var count = 0;
+        var value = new Label { Text = "0", FontSize = 64, FontAttributes = FontAttributes.Bold, TextColor = Accent, AutomationId = "count" };
+        var status = Small ("No clicks yet.");
+
+        void Update (string message)
+        {
+            value.Text = count.ToString ();
+            status.Text = message;
+            status.TextColor = Muted;
+        }
+
+        var decrement = Secondary ("−1", "decrement");
+        decrement.Clicked += (_, _) => { count--; Update ($"Decremented to {count}."); };
+
+        var increment = Primary ("+1", "increment");
+        increment.Clicked += (_, _) => { count++; Update ($"Incremented to {count}."); };
+
+        var reset = Secondary ("Reset", "reset");
+        reset.Clicked += (_, _) => { count = 0; Update ("Counter reset."); };
+
+        return Page (
+            Heading ("Counter"),
+            Lead ("Each click travels to the server over this page's WebSocket and back."),
+            new Border {
+                BackgroundColor = Colors.White,
+                Stroke = new SolidColorBrush (Line),
+                StrokeThickness = 1,
+                StrokeShape = new RoundRectangle { CornerRadius = 18 },
+                Padding = new Thickness (28),
+                Content = new VerticalStackLayout {
+                    Spacing = 16,
+                    Children = {
+                        value,
+                        new HorizontalStackLayout { Spacing = 12, Children = { decrement, increment, reset } },
+                        status,
+                    },
+                },
+            },
+            Card ("Why a round trip?",
+                "The counter lives in a closure on the server, not in the browser.",
+                Small ("Reload the page and it starts at 0 again: the page instance belongs to one session.")));
+    }
+
+    public static ContentPage Form ()
+    {
+        var name = new Entry { Placeholder = "e.g. Northstar", AutomationId = "name" };
+        var email = new Entry { Placeholder = "you@example.com", AutomationId = "email" };
+        var role = new Picker { Title = "Choose a project type", AutomationId = "role" };
+        role.ItemsSource = new[] { "Marketing site", "Customer portal", "Internal dashboard" };
+        role.SelectedIndex = 0;
+        var date = new DatePicker { Date = DateTime.Today.AddDays (14), AutomationId = "date" };
+        var time = new TimePicker { Time = new TimeSpan (10, 0, 0), AutomationId = "time" };
+
+        var budget = new Slider { Minimum = 0, Maximum = 100, Value = 68, ThumbColor = Accent, MinimumTrackColor = Accent, AutomationId = "budget" };
+        var budgetValue = new Label { Text = "68 %", FontSize = 18, FontAttributes = FontAttributes.Bold, TextColor = Ink, AutomationId = "budget-value" };
+        var progress = new ProgressBar { Progress = .68, ProgressColor = Accent, HeightRequest = 10 };
+        budget.ValueChanged += (_, e) => {
+            budgetValue.Text = $"{e.NewValue:0} %";
+            progress.Progress = e.NewValue / 100;
+        };
+
+        var notifications = new Switch { IsToggled = true, OnColor = Accent, AutomationId = "notifications" };
+        var terms = new CheckBox { IsChecked = false, Color = Accent, AutomationId = "terms" };
+        var notes = new Editor { Placeholder = "What makes this project special?", HeightRequest = 110, MaxLength = 400, AutomationId = "notes" };
+
+        var status = Small ("Nothing saved yet.");
+        status.AutomationId = "form-status";
+
+        var submit = Primary ("Submit", "submit");
+        submit.Clicked += (_, _) => {
+            if (string.IsNullOrWhiteSpace (name.Text)) {
+                status.TextColor = Danger;
+                status.Text = "Please enter a project name.";
+                name.Focus ();
+                return;
+            }
+            if (!terms.IsChecked) {
+                status.TextColor = Danger;
+                status.Text = "Please accept the terms first.";
+                return;
+            }
+            status.TextColor = Success;
+            var at = time.Time ?? new TimeSpan (10, 0, 0);
+            var when = $"{date.Date:yyyy-MM-dd} {at.Hours:00}:{at.Minutes:00}";
+            status.Text = $"Saved {name.Text.Trim ()} · {role.SelectedItem} · {when} · budget {budget.Value:0} %"
+                + (notifications.IsToggled ? " · team notified" : "");
+        };
+
+        var clear = Secondary ("Reset", "reset-form");
+        clear.Clicked += (_, _) => {
+            name.Text = string.Empty;
+            email.Text = string.Empty;
+            role.SelectedIndex = 0;
+            date.Date = DateTime.Today.AddDays (14);
+            time.Time = new TimeSpan (10, 0, 0);
+            budget.Value = 68;
+            notifications.IsToggled = true;
+            terms.IsChecked = false;
+            notes.Text = string.Empty;
+            status.TextColor = Muted;
+            status.Text = "Sample values restored. Only this session changed.";
+        };
+
+        return Page (
+            Heading ("Form"),
+            Lead ("Entries, pickers, sliders and switches — all bound to plain C# local state."),
+            Card ("Launch a new idea",
+                "The submitted summary is composed on the server.",
+                Caption ("PROJECT NAME"), name,
+                Caption ("CONTACT"), email,
+                Caption ("PROJECT TYPE"), role,
+                new Grid {
+                    ColumnSpacing = 16,
+                    ColumnDefinitions = new ColumnDefinitionCollection { new (GridLength.Star), new (GridLength.Star) },
+                    RowDefinitions = new RowDefinitionCollection { new (GridLength.Auto) },
+                    Children = {
+                        Cell (Caption ("LAUNCH DATE"), date, 0),
+                        Cell (Caption ("LAUNCH TIME"), time, 1),
+                    },
+                },
+                Caption ("BUDGET"), budgetValue, progress, budget,
+                new HorizontalStackLayout { Spacing = 12, Children = { notifications, Body ("Notify the launch team") } },
+                new HorizontalStackLayout { Spacing = 12, Children = { terms, Body ("I accept the terms") } },
+                Caption ("NOTES"), notes,
+                new HorizontalStackLayout { Spacing = 12, Children = { submit, clear } },
+                status));
+    }
+
+    public static ContentPage Controls ()
+    {
+        var search = new SearchBar { Placeholder = "Type to see the server react…", AutomationId = "search" };
+        var echo = Small ("The search text is echoed from C#.");
+        echo.AutomationId = "search-echo";
+        search.TextChanged += (_, e) => echo.Text = string.IsNullOrEmpty (e.NewTextValue)
+            ? "The search text is echoed from C#."
+            : $"Server received: “{e.NewTextValue}”";
+
+        var stepper = new Stepper { Minimum = 0, Maximum = 10, Value = 3, Increment = 1, AutomationId = "stepper" };
+        var stepValue = new Label { Text = "3 seats", FontSize = 18, FontAttributes = FontAttributes.Bold, TextColor = Ink, AutomationId = "stepper-value" };
+        stepper.ValueChanged += (_, e) => stepValue.Text = e.NewValue == 1 ? "1 seat" : $"{e.NewValue:0} seats";
+
+        return Page (
+            Heading ("Controls"),
+            Lead ("A quick tour of what this backend renders today."),
+            Card ("Input and feedback",
+                "SearchBar, Stepper and ActivityIndicator.",
+                search, echo, stepValue, stepper,
+                new HorizontalStackLayout {
+                    Spacing = 14,
+                    Children = {
+                        new ActivityIndicator { IsRunning = true, Color = Accent, HeightRequest = 28, AutomationId = "busy" },
+                        Body ("An ActivityIndicator, animating in the browser"),
+                    },
+                }),
+            Card ("Layout and decoration",
+                "Border, BoxView, Image and ProgressBar.",
+                new BoxView { Color = Accent, HeightRequest = 4, CornerRadius = 2 },
+                new ProgressBar { Progress = .45, ProgressColor = Accent, HeightRequest = 10 },
+                new HorizontalStackLayout {
+                    Spacing = 16,
+                    Children = {
+                        new Image { Source = "/logo.svg", Aspect = Aspect.AspectFit, HeightRequest = 56, AutomationId = "logo" },
+                        new VerticalStackLayout {
+                            Spacing = 4,
+                            Children = {
+                                new Label { Text = "This logo is an SVG served by the same ASP.NET app.", FontSize = 16, TextColor = Ink },
+                                Small ("Fill, spacing, corner radius and object-fit all come from MAUI properties."),
+                            },
+                        },
+                    },
+                }),
+            Card ("Not supported yet",
+                "Keep these out of a production plan for now.",
+                Small ("NavigationPage, Shell and TabbedPage, CollectionView, ListView, WebView, graphics, gestures and animations.")));
+    }
+
+    static ContentPage Page (params View[] content)
+    {
+        var stack = new VerticalStackLayout { Spacing = 20 };
+        foreach (var view in content)
+            stack.Children.Add (view);
+        return new ContentPage { Content = stack };
+    }
+
+    static View Cell (View caption, View editor, int column)
+    {
+        var stack = new VerticalStackLayout {
+            Spacing = 6,
+            Children = { caption, editor },
+        };
+        Grid.SetColumn (stack, column);
+        return stack;
+    }
+
+    static Border Card (string heading, string description, params View[] content)
+    {
+        var stack = new VerticalStackLayout {
+            Spacing = 12,
+            Children = {
+                new Label { Text = heading, FontSize = 23, FontAttributes = FontAttributes.Bold, TextColor = Ink },
+                Small (description),
+            },
+        };
+        foreach (var view in content)
+            stack.Children.Add (view);
+        return new Border {
+            BackgroundColor = Colors.White,
+            Stroke = new SolidColorBrush (Line),
+            StrokeThickness = 1,
+            StrokeShape = new RoundRectangle { CornerRadius = 18 },
+            Padding = new Thickness (24),
+            Content = stack,
+        };
+    }
+
+    static Label Heading (string text) => new () { Text = text, FontSize = 34, FontAttributes = FontAttributes.Bold, TextColor = Ink };
+    static Label Lead (string text) => new () { Text = text, FontSize = 18, TextColor = Muted, LineHeight = 1.4 };
+    static Label Body (string text) => new () { Text = text, FontSize = 16, TextColor = Ink };
+    static Label Small (string text) => new () { Text = text, FontSize = 14, TextColor = Muted, LineHeight = 1.35 };
+    static Label Caption (string text) => new () { Text = text, FontSize = 12, FontAttributes = FontAttributes.Bold, TextColor = Muted, CharacterSpacing = 1 };
+    static Button Primary (string text, string automationId) => new () { Text = text, TextColor = Colors.White, BackgroundColor = Accent, CornerRadius = 10, FontAttributes = FontAttributes.Bold, AutomationId = automationId };
+    static Button Secondary (string text, string automationId) => new () { Text = text, TextColor = Ink, BackgroundColor = Color.FromArgb ("#eef0f7"), CornerRadius = 10, AutomationId = automationId };
+}

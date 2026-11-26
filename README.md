@@ -5,7 +5,7 @@
 | Version | Package | Description |
 | ------- | ------- | ----------- |
 | [![NuGet Package](https://img.shields.io/nuget/v/Ooui.svg)](https://www.nuget.org/packages/Ooui) | [Ooui](https://www.nuget.org/packages/Ooui) | Core library with HTML elements and a server |
-| [![NuGet Package](https://img.shields.io/nuget/v/Ooui.AspNetCore.svg)](https://www.nuget.org/packages/Ooui.AspNetCore) | [Ooui.AspNetCore](https://www.nuget.org/packages/Ooui.AspNetCore) | Integration with ASP.NET Core |
+| [![NuGet Package](https://img.shields.io/nuget/v/Ooui.AspNetCore.svg)](https://www.nuget.org/packages/Ooui.AspNetCore) | [Ooui.AspNetCore](https://www.nuget.org/packages/Ooui.AspNetCore) | Integration with ASP.NET Core (`net11.0` in this fork) |
 | [![NuGet Package](https://img.shields.io/nuget/v/Ooui.Forms.svg)](https://www.nuget.org/packages/Ooui.Forms) | [Ooui.Forms](https://www.nuget.org/packages/Ooui.Forms) | Xamarin.Forms backend using Ooui ([Status](Documentation/OouiFormsStatus.md)) |
 | `Ooui.Maui` (experimental, source only) | [Ooui.Maui](Ooui.Maui/Ooui.Maui.csproj) | Experimental .NET MAUI 11 browser backend |
 | [![NuGet Package](https://img.shields.io/nuget/v/Ooui.Wasm.svg)](https://www.nuget.org/packages/Ooui.Wasm) | [Ooui.Wasm](https://www.nuget.org/packages/Ooui.Wasm) | Package your app into a web assembly |
@@ -83,6 +83,82 @@ dotnet test Ooui.Maui.Tests/Ooui.Maui.Tests.csproj
 ```
 
 
+## ASP.NET Core (net11.0)
+
+`Ooui.AspNetCore` hosts Ooui elements inside your own ASP.NET Core app instead of the built-in server. On this branch it targets `net11.0` and uses a `Microsoft.AspNetCore.App` framework reference instead of the retired `Microsoft.AspNetCore.Mvc` 2.2 / `Microsoft.AspNetCore.WebSockets` 2.2 packages.
+
+```csharp
+var builder = WebApplication.CreateBuilder (args);
+builder.Services.AddControllers ();
+var app = builder.Build ();
+
+app.UseOoui ();     // serves /ooui.js and /ooui.ws, disables the built-in server
+app.MapControllers ();
+app.Run ();
+```
+
+Any action can then return an Ooui element. `ElementResult` starts a pending session, renders the initial HTML, and upgrades the matching web socket request:
+
+```csharp
+public class CounterController : Controller
+{
+    public IActionResult Index ()
+    {
+        var count = 0;
+        var label = new Label { Text = "0" };
+        var button = new Button { Text = "Increase" };
+        button.Click += (s, e) => label.Text = (++count).ToString ();
+
+        var div = new Div ();
+        div.AppendChild (label);
+        div.AppendChild (button);
+        return new ElementResult (div, title: "Counter");
+    }
+}
+```
+
+`UseOoui()` sets `UI.ServerEnabled = false`, so Kestrel is the only listener. Because `ElementResult` accepts any `Ooui.Element`, it also works with elements produced by `Ooui.Maui` — a MAUI page renders through `page.ToOouiElement (mauiContext)` and keeps live web socket updates.
+
+The sample runs on `net11.0`:
+
+```bash
+dotnet run --project PlatformSamples/AspNetCoreMvc/AspNetCoreMvc.csproj --urls http://localhost:8099
+```
+
+Then open <http://localhost:8099/Samples/Clicker>. Note that this sample still uses its original Xamarin.Forms pages alongside plain Ooui elements.
+
+### MAUI pages in ASP.NET Core
+
+`PlatformSamples/AspNetCoreMaui` goes the other way round: it hosts `Microsoft.Maui.Controls` pages, renders them with `Ooui.Maui`, and serves them from Kestrel. Every request creates one MAUI page, so each browser tab gets an independent session with live web socket updates.
+
+```bash
+dotnet run --project PlatformSamples/AspNetCoreMaui/AspNetCoreMaui.csproj   # http://localhost:8090
+```
+
+| Route | Shows |
+| --- | --- |
+| `/` | `Grid`/`Border`/`Image` hero, `FlexLayout` cards |
+| `/counter` | `Label` + `Button` round trip, per-session state |
+| `/form` | `Entry`, `Editor`, `Picker`, `DatePicker`, `TimePicker`, `Slider`, `Stepper`, `CheckBox`, `Switch` and server-side validation |
+| `/controls` | `ProgressBar`, `ActivityIndicator`, `BoxView`, `SearchBar`, nested stack layouts |
+
+The wiring is two lines of setup plus a controller action:
+
+```csharp
+var maui = MauiApp.CreateBuilder ()
+    .UseMauiApp<App> ()
+    .UseOoui ()                     // MAUI handlers + dispatcher
+    .Build ();
+
+builder.Services.AddSingleton<IMauiContext> (new MauiContext (maui.Services));
+
+public IActionResult Index () =>
+    new ElementResult (Demos.Overview ().ToOouiElement (mauiContext), title: "Ooui + MAUI");
+```
+
+Registering the context **as `IMauiContext`** is what lets the ASP.NET Core container resolve it in the controller. Navigation pages, Shell, `CollectionView` and gestures are not supported yet, so the sample sticks to plain `ContentPage` roots.
+
+
 ## Example App
 
 Here is the complete source code to a fully collaborative button clicking app.
@@ -158,6 +234,8 @@ Ooui has been broken up into several packages to increase the variety of ways th
 </tr>
 
 </table>
+
+In addition to the combinations above, the experimental `Ooui.Maui` project can be combined with `Ooui.AspNetCore`: register the Ooui handlers with `UseMauiApp<App>().UseOoui()`, expose the MAUI services as an `IMauiContext`, and return `new ElementResult (page.ToOouiElement (mauiContext))` from a controller. `PlatformSamples/AspNetCoreMaui` is a runnable example of exactly that combination.
 
 
 ## How it works
