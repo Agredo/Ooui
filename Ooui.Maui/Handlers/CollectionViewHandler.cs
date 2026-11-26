@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Specialized;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Handlers;
+using MauiLabel = Microsoft.Maui.Controls.Label;
 
 namespace Ooui.Maui.Handlers;
 
@@ -11,42 +12,76 @@ namespace Ooui.Maui.Handlers;
 /// because the browser only receives the items that changed afterwards.
 /// </summary>
 /// <remarks>
-/// Supported: <c>ItemsSource</c> (including <see cref="INotifyCollectionChanged"/>),
-/// <c>ItemTemplate</c>, <c>EmptyView</c>, <c>SelectionMode</c> with <c>SelectedItem</c> and
-/// <c>SelectedItems</c>, and <c>ItemsLayout</c> for spacing and orientation. Grouping,
-/// headers, footers and scrolling events are not implemented yet.
+/// Supported: <c>ItemsSource</c> (including <see cref="INotifyCollectionChanged"/> with
+/// incremental add, remove and replace), <c>ItemTemplate</c>, <c>EmptyView</c> and
+/// <c>EmptyViewTemplate</c>, <c>Header</c> and <c>Footer</c> with their templates, grouping via
+/// <c>IsGrouped</c>, <c>SelectionMode</c> with <c>SelectedItem</c> and <c>SelectedItems</c>,
+/// <c>ItemsLayout</c> for spacing and orientation, and <c>RemainingItemsThreshold</c> driven by
+/// the browser scroll position. <c>ScrollTo</c> is not implemented, because the browser owns the
+/// scroll position.
 /// </remarks>
 public class CollectionViewHandler : OouiViewHandler<CollectionView, Div>
 {
+    /// <summary>Class name of the element that holds the items and scrolls.</summary>
+    public const string ItemsHostClassName = "ooui-items";
+
+    /// <summary>Class name of the element that wraps one group.</summary>
+    public const string GroupClassName = "ooui-group";
+
     public static readonly IPropertyMapper<CollectionView, CollectionViewHandler> Mapper =
-        new PropertyMapper<CollectionView, CollectionViewHandler>(OouiViewMapper.Mapper)
+        new PropertyMapper<CollectionView, CollectionViewHandler> (OouiViewMapper.Mapper)
         {
-            [nameof(ItemsView.ItemsSource)] = MapItemsSource,
-            [nameof(ItemsView.ItemTemplate)] = MapItems,
-            [nameof(ItemsView.EmptyView)] = MapItems,
-            [nameof(StructuredItemsView.ItemsLayout)] = MapItemsLayout,
-            [nameof(SelectableItemsView.SelectionMode)] = MapSelectionMode,
-            [nameof(SelectableItemsView.SelectedItem)] = MapSelectedItem,
+            [nameof (ItemsView.ItemsSource)] = MapItemsSource,
+            [nameof (ItemsView.ItemTemplate)] = MapItems,
+            [nameof (ItemsView.EmptyView)] = MapItems,
+            [nameof (ItemsView.EmptyViewTemplate)] = MapItems,
+            [nameof (ItemsView.RemainingItemsThreshold)] = MapRemainingItemsThreshold,
+            [nameof (StructuredItemsView.ItemsLayout)] = MapItemsLayout,
+            [nameof (StructuredItemsView.Header)] = MapChrome,
+            [nameof (StructuredItemsView.HeaderTemplate)] = MapChrome,
+            [nameof (StructuredItemsView.Footer)] = MapChrome,
+            [nameof (StructuredItemsView.FooterTemplate)] = MapChrome,
+            [nameof (GroupableItemsView.IsGrouped)] = MapItems,
+            [nameof (GroupableItemsView.GroupHeaderTemplate)] = MapItems,
+            [nameof (GroupableItemsView.GroupFooterTemplate)] = MapItems,
+            [nameof (SelectableItemsView.SelectionMode)] = MapItems,
+            [nameof (SelectableItemsView.SelectedItem)] = MapSelectedItem,
         };
 
     readonly List<ItemContainer> containers = new ();
+    readonly List<INotifyCollectionChanged> observedGroups = new ();
+    Div itemsHost = null!;
     INotifyCollectionChanged? observedSource;
     bool syncingSelection;
+    bool thresholdReached;
+    double lastScrollX;
+    double lastScrollY;
 
     public CollectionViewHandler () : base (Mapper) { }
 
-    protected override Div CreatePlatformView () => new ();
+    protected override Div CreatePlatformView ()
+    {
+        itemsHost = new Div { ClassName = ItemsHostClassName };
+        var platformView = new Div ();
+        platformView.Style.Display = "flex";
+        platformView.Style["flex-direction"] = "column";
+        platformView.Style["min-height"] = "0";
+        return platformView;
+    }
 
     protected override void ConnectHandler (Div platformView)
     {
         base.ConnectHandler (platformView);
+        itemsHost.AddEventListener ("scroll", OnScrolled);
         Observe ();
         Rebuild ();
     }
 
     protected override void DisconnectHandler (Div platformView)
     {
+        itemsHost.RemoveEventListener ("scroll", OnScrolled);
         Unobserve ();
+        UnobserveGroups ();
         containers.Clear ();
         base.DisconnectHandler (platformView);
     }
@@ -62,9 +97,11 @@ public class CollectionViewHandler : OouiViewHandler<CollectionView, Div>
 
     public static void MapItems (CollectionViewHandler handler, CollectionView view) => handler.Rebuild ();
 
+    public static void MapChrome (CollectionViewHandler handler, CollectionView view) => handler.Rebuild ();
+
     public static void MapItemsLayout (CollectionViewHandler handler, CollectionView view) => handler.UpdateLayout ();
 
-    public static void MapSelectionMode (CollectionViewHandler handler, CollectionView view) => handler.Rebuild ();
+    public static void MapRemainingItemsThreshold (CollectionViewHandler handler, CollectionView view) => handler.thresholdReached = false;
 
     public static void MapSelectedItem (CollectionViewHandler handler, CollectionView view)
     {
@@ -88,12 +125,90 @@ public class CollectionViewHandler : OouiViewHandler<CollectionView, Div>
         observedSource = null;
     }
 
-    void OnItemsChanged (object? sender, NotifyCollectionChangedEventArgs args) => Rebuild ();
+    void UnobserveGroups ()
+    {
+        foreach (var group in observedGroups)
+            group.CollectionChanged -= OnGroupChanged;
+        observedGroups.Clear ();
+    }
+
+    void OnGroupChanged (object? sender, NotifyCollectionChangedEventArgs args) => Rebuild ();
+
+    void OnItemsChanged (object? sender, NotifyCollectionChangedEventArgs args)
+    {
+        if (UsesGroups () || !ApplyIncrementalChange (args)) {
+            Rebuild ();
+            return;
+        }
+        thresholdReached = false;
+        UpdateSelection ();
+    }
+
+    bool ApplyIncrementalChange (NotifyCollectionChangedEventArgs args)
+    {
+        switch (args.Action) {
+            case NotifyCollectionChangedAction.Add when args.NewItems is { } added && args.NewStartingIndex >= 0:
+                // The empty view has to go away before the first item appears, so start over.
+                if (containers.Count == 0 || args.NewStartingIndex > containers.Count)
+                    return false;
+                InsertItems (args.NewStartingIndex, added);
+                return true;
+            case NotifyCollectionChangedAction.Remove when args.OldItems is { } removed && args.OldStartingIndex >= 0:
+                if (args.OldStartingIndex + removed.Count > containers.Count)
+                    return false;
+                RemoveItems (args.OldStartingIndex, removed.Count);
+                return true;
+            case NotifyCollectionChangedAction.Replace when args.NewItems is { } replacement && args.OldItems is { } replaced && args.NewStartingIndex >= 0:
+                if (args.NewStartingIndex + replaced.Count > containers.Count)
+                    return false;
+                ReplaceItems (args.NewStartingIndex, replacement);
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    void InsertItems (int index, IList items)
+    {
+        for (var i = 0; i < items.Count; i++) {
+            var container = CreateContainer (items[i]);
+            if (index + i < containers.Count)
+                itemsHost.InsertBefore (container.Element, containers[index + i].Element);
+            else
+                itemsHost.AppendChild (container.Element);
+            containers.Insert (index + i, container);
+        }
+    }
+
+    void RemoveItems (int index, int count)
+    {
+        for (var i = 0; i < count; i++) {
+            var container = containers[index];
+            containers.RemoveAt (index);
+            itemsHost.RemoveChild (container.Element);
+        }
+        // The empty view comes back when the last item leaves.
+        if (containers.Count == 0)
+            Rebuild ();
+    }
+
+    void ReplaceItems (int index, IList items)
+    {
+        for (var i = 0; i < items.Count; i++) {
+            var previous = containers[index + i];
+            var container = CreateContainer (items[i]);
+            itemsHost.InsertBefore (container.Element, previous.Element);
+            itemsHost.RemoveChild (previous.Element);
+            containers[index + i] = container;
+        }
+    }
 
     void UpdateLayout ()
     {
-        var style = PlatformView.Style;
+        var style = itemsHost.Style;
         style.Display = "flex";
+        style["flex"] = "1 1 auto";
+        style["min-height"] = "0";
         style["flex-direction"] = "column";
         style["grid-template-columns"] = null;
         style["row-gap"] = null;
@@ -117,34 +232,92 @@ public class CollectionViewHandler : OouiViewHandler<CollectionView, Div>
 
     void Rebuild ()
     {
+        containers.Clear ();
+        UnobserveGroups ();
+        // The items host has to be emptied while it is still in the tree: Ooui addresses nodes by id, and
+        // removeChild messages for a detached subtree never reach the browser.
+        foreach (var child in itemsHost.Children.ToArray ())
+            itemsHost.RemoveChild (child);
         foreach (var child in PlatformView.Children.ToArray ())
             PlatformView.RemoveChild (child);
-        containers.Clear ();
-        UpdateLayout ();
+        thresholdReached = false;
 
         if (MauiContext is null)
             return;
 
-        var items = ReadItems ();
-        if (items.Count == 0)
-            AddEmptyView ();
+        if (CreateChrome (VirtualView.Header, VirtualView.HeaderTemplate) is { } header)
+            PlatformView.AppendChild (header);
+        PlatformView.AppendChild (itemsHost);
+        if (CreateChrome (VirtualView.Footer, VirtualView.FooterTemplate) is { } footer)
+            PlatformView.AppendChild (footer);
+
+        UpdateLayout ();
+        if (UsesGroups ())
+            AddGroups ();
         else
-            foreach (var item in items)
-                AddItem (item);
+            AddItems ();
 
         UpdateSelection ();
     }
 
-    List<object?> ReadItems ()
+    bool UsesGroups ()
     {
-        var items = new List<object?> ();
-        if (VirtualView.ItemsSource is IEnumerable source)
-            foreach (var item in source)
-                items.Add (item);
-        return items;
+        if (!VirtualView.IsGrouped || VirtualView.ItemsSource is not IEnumerable source)
+            return false;
+        foreach (var item in source)
+            return item is IEnumerable and not string;
+        return false;
     }
 
-    void AddItem (object? item)
+    void AddItems ()
+    {
+        var items = ReadItems (VirtualView.ItemsSource);
+        if (items.Count == 0) {
+            AddEmptyView (itemsHost);
+            return;
+        }
+        foreach (var item in items)
+            AddItem (item, itemsHost);
+    }
+
+    void AddGroups ()
+    {
+        var groups = ReadItems (VirtualView.ItemsSource);
+        if (groups.Count == 0) {
+            AddEmptyView (itemsHost);
+            return;
+        }
+
+        foreach (var group in groups) {
+            var groupElement = new Div { ClassName = GroupClassName };
+            groupElement.SetAttribute ("role", "group");
+            groupElement.Style.Display = "flex";
+            groupElement.Style["flex-direction"] = "column";
+
+            if (CreateGroupChrome (group, VirtualView.GroupHeaderTemplate, useDefaultText: true) is { } groupHeader)
+                groupElement.AppendChild (groupHeader);
+            foreach (var item in ReadItems (group as IEnumerable))
+                AddItem (item, groupElement);
+            if (CreateGroupChrome (group, VirtualView.GroupFooterTemplate, useDefaultText: false) is { } groupFooter)
+                groupElement.AppendChild (groupFooter);
+
+            if (group is INotifyCollectionChanged notifying) {
+                notifying.CollectionChanged += OnGroupChanged;
+                observedGroups.Add (notifying);
+            }
+
+            itemsHost.AppendChild (groupElement);
+        }
+    }
+
+    void AddItem (object? item, Div parent)
+    {
+        var container = CreateContainer (item);
+        parent.AppendChild (container.Element);
+        containers.Add (container);
+    }
+
+    ItemContainer CreateContainer (object? item)
     {
         var selectable = VirtualView.SelectionMode != SelectionMode.None;
         var container = new Div { Style = { Display = "flex" } };
@@ -157,25 +330,70 @@ public class CollectionViewHandler : OouiViewHandler<CollectionView, Div>
 
         if (CreateItemContent (item) is { } content)
             container.AppendChild (content);
-        PlatformView.AppendChild (container);
-        containers.Add (new ItemContainer (item, container));
+
+        return new ItemContainer (item, container);
     }
 
-    void AddEmptyView ()
+    void AddEmptyView (Div parent)
     {
+        if (MauiContext is null)
+            return;
+
+        if (VirtualView.EmptyViewTemplate is DataTemplate template && template.CreateContent () is View templated) {
+            templated.BindingContext = VirtualView.EmptyView;
+            parent.AppendChild (templated.ToOouiElement (MauiContext));
+            return;
+        }
+
         var view = VirtualView.EmptyView switch {
             View empty => empty,
-            string text when text.Length > 0 => (View)new Microsoft.Maui.Controls.Label { Text = text },
+            string text when text.Length > 0 => (View)new MauiLabel { Text = text },
             _ => null,
         };
         if (view is not null)
-            PlatformView.AppendChild (view.ToOouiElement (MauiContext!));
+            parent.AppendChild (view.ToOouiElement (MauiContext));
     }
 
-    Element? CreateItemContent (object? item)
+    Ooui.Element? CreateChrome (object? data, DataTemplate? template)
     {
-        var view = CreateItemView (item);
-        return view?.ToOouiElement (MauiContext!);
+        if (MauiContext is null)
+            return null;
+
+        if (template is not null) {
+            if (template.CreateContent () is not View templated)
+                return null;
+            templated.BindingContext = data;
+            return templated.ToOouiElement (MauiContext);
+        }
+
+        return data switch {
+            View view => view.ToOouiElement (MauiContext),
+            string text when text.Length > 0 => new MauiLabel { Text = text }.ToOouiElement (MauiContext),
+            _ => null,
+        };
+    }
+
+    Ooui.Element? CreateGroupChrome (object? group, DataTemplate? template, bool useDefaultText)
+    {
+        if (template is not null)
+            return CreateChrome (group, template);
+        if (!useDefaultText)
+            return null;
+
+        // Without a template MAUI shows the text of the group itself, so mirror that.
+        var text = group?.ToString () ?? "";
+        if (text.Length == 0)
+            return null;
+
+        var label = new MauiLabel { Text = text, FontAttributes = FontAttributes.Bold };
+        return MauiContext is null ? null : label.ToOouiElement (MauiContext);
+    }
+
+    Ooui.Element? CreateItemContent (object? item)
+    {
+        if (MauiContext is null)
+            return null;
+        return CreateItemView (item)?.ToOouiElement (MauiContext);
     }
 
     View CreateItemView (object? item)
@@ -186,7 +404,16 @@ public class CollectionViewHandler : OouiViewHandler<CollectionView, Div>
         }
         if (item is View itemView)
             return itemView;
-        return new Microsoft.Maui.Controls.Label { Text = item?.ToString () ?? "" };
+        return new MauiLabel { Text = item?.ToString () ?? "" };
+    }
+
+    static List<object?> ReadItems (IEnumerable? source)
+    {
+        var items = new List<object?> ();
+        if (source is not null)
+            foreach (var item in source)
+                items.Add (item);
+        return items;
     }
 
     void OnItemClicked (object? item)
@@ -225,11 +452,11 @@ public class CollectionViewHandler : OouiViewHandler<CollectionView, Div>
     void UpdateSelection ()
     {
         var selectable = VirtualView.SelectionMode != SelectionMode.None;
-        PlatformView.SetAttribute ("role", selectable ? "listbox" : "list");
+        itemsHost.SetAttribute ("role", selectable ? "listbox" : "list");
         if (VirtualView.SelectionMode == SelectionMode.Multiple)
-            PlatformView.SetAttribute ("aria-multiselectable", "true");
+            itemsHost.SetAttribute ("aria-multiselectable", "true");
         else
-            PlatformView.RemoveAttribute ("aria-multiselectable");
+            itemsHost.RemoveAttribute ("aria-multiselectable");
 
         foreach (var container in containers) {
             container.Element.SetAttribute ("role", selectable ? "option" : "listitem");
@@ -239,6 +466,44 @@ public class CollectionViewHandler : OouiViewHandler<CollectionView, Div>
                 container.Element.RemoveAttribute ("aria-selected");
         }
     }
+
+    void OnScrolled (object? sender, TargetEventArgs args)
+    {
+        var rowHeight = containers.Count > 0 ? args.ContentHeight / containers.Count : 0;
+        var first = 0;
+        var center = 0;
+        var last = Math.Max (0, containers.Count - 1);
+        if (rowHeight > 0) {
+            first = ClampRow ((int)Math.Floor (args.ScrollY / rowHeight));
+            center = ClampRow ((int)Math.Floor ((args.ScrollY + args.ClientHeight / 2) / rowHeight));
+            last = ClampRow ((int)Math.Ceiling ((args.ScrollY + args.ClientHeight) / rowHeight) - 1);
+        }
+
+        VirtualView.SendScrolled (new ItemsViewScrolledEventArgs {
+            VerticalOffset = args.ScrollY,
+            VerticalDelta = args.ScrollY - lastScrollY,
+            HorizontalOffset = args.ScrollX,
+            HorizontalDelta = args.ScrollX - lastScrollX,
+            FirstVisibleItemIndex = first,
+            CenterItemIndex = center,
+            LastVisibleItemIndex = last,
+        });
+        lastScrollX = args.ScrollX;
+        lastScrollY = args.ScrollY;
+
+        var threshold = VirtualView.RemainingItemsThreshold;
+        if (threshold < 0 || thresholdReached || rowHeight <= 0)
+            return;
+
+        var remaining = args.ContentHeight - args.ScrollY - args.ClientHeight;
+        if (remaining > threshold * rowHeight)
+            return;
+
+        thresholdReached = true;
+        VirtualView.SendRemainingItemsThresholdReached ();
+    }
+
+    int ClampRow (int index) => Math.Clamp (index, 0, Math.Max (0, containers.Count - 1));
 
     sealed record ItemContainer (object? Item, Div Element);
 }

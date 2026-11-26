@@ -25,6 +25,11 @@ public sealed class SiteState
     public Person? SelectedPerson { get; set; }
     public string ListNote { get; set; } = "Nobody selected yet.";
 
+    // The grouped CollectionView on the same page renders one block per team. The teams are observable
+    // too, so adding a member reaches the browser over the open WebSocket.
+    public ObservableCollection<PersonTeam> Teams { get; } = new (InitialTeams ());
+    public int MemberAdds { get; set; }
+
     public int Pages { get; set; }
 
     static IEnumerable<Person> InitialPeople () => new[] {
@@ -32,6 +37,21 @@ public sealed class SiteState
         new Person ("Grace Hopper", "Platform", "GH", Color.FromArgb ("#31846a")),
         new Person ("Alan Turing", "Research", "AT", Color.FromArgb ("#b4661f")),
     };
+
+    static IEnumerable<PersonTeam> InitialTeams () => new[] {
+        new PersonTeam ("Engineering",
+            new Person ("Ada Lovelace", "Engineering", "AL", Color.FromArgb ("#6854d9")),
+            new Person ("Grace Hopper", "Platform", "GH", Color.FromArgb ("#31846a"))),
+        new PersonTeam ("Research",
+            new Person ("Alan Turing", "Research", "AT", Color.FromArgb ("#b4661f")),
+            new Person ("Katherine Johnson", "Research", "KJ", Color.FromArgb ("#8a4fb8"))),
+    };
+}
+
+/// <summary>One group of the grouped demo list: the team name is the group header, the members are the items.</summary>
+public sealed class PersonTeam (string title, params Person[] members) : ObservableCollection<Person> (members)
+{
+    public string Title { get; } = title;
 }
 
 /// <summary>One row of the demo list: plain data, no view state.</summary>

@@ -117,3 +117,29 @@ Virtualization (windowing), drag and drop reorder, swipe actions, `CarouselView`
 
 New tests green, existing tests green, 0 build warnings, Playwright check passes, README updated, nothing committed
 without user approval. Final report to the user in German, short.
+
+## Result
+
+Steps 1–9 are implemented and verified:
+
+- `CollectionViewHandler` renders header, an inner `Div.ooui-items` scroll host and footer; `Add`, `Remove` and
+  `Replace` insert, drop or renew only the affected containers, while `Move`, `Reset` and the 0↔1 item transitions
+  rebuild the list.
+- Header, footer, `HeaderTemplate`, `FooterTemplate`, `EmptyViewTemplate` and grouping (`Div.ooui-group` per group
+  with `GroupHeaderTemplate`/`GroupFooterTemplate`, a default `Label` header) are honoured; grouped lists rebuild as a
+  whole and observe every group collection.
+- The scroll host raises `Scrolled` with the visible rows and calls `RemainingItemsThresholdReached` once per item
+  count. `ScrollTo` is not implemented, because the browser owns the scroll position.
+- `RefreshViewHandler` draws a "Refresh" button plus a status line instead of a pull gesture, runs `Command` once,
+  keeps the button disabled while `IsRefreshing` is true and colours the status text with `RefreshColor`.
+- `ListViewHandler` covers `ItemsSource` (rebuilding on change), `ViewCell`/`TextCell` templates, `ItemTapped`,
+  `ItemSelected`, `SelectedItem`, header/footer and `SeparatorVisibility`/`SeparatorColor`.
+- Tests: `AddingAnItemKeepsTheExistingContainers`, `RemovingAnItemKeepsTheOtherContainers`,
+  `ReplacingAnItemOnlyRenewsThatContainer`, `HeaderAndFooterSurroundTheItems`, `HeaderTemplateBindsTheHeaderData`,
+  `GroupedSourceRendersOneBlockPerGroup`, `EmptyViewTemplateBindsTheEmptyViewData`,
+  `ScrollingNearTheEndRaisesTheThresholdEvent`, `ScrollingReportsTheVisibleRows`, the eight `ListView` tests and the
+  five `RefreshView` tests.
+- Sample: `PeoplePage.xaml` gained a grouped "People by team" list with header and footer plus an "Add member"
+  button that appends to one team.
+- Browser (`verify_people_grouping.py`, 13 checks): group headers, footer, adding a member grows one group without
+  re-creating the other rows, and no page errors; `verify_pages.py` (26 checks) still passes.

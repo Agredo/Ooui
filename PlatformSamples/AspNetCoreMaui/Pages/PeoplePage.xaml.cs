@@ -28,6 +28,7 @@ public partial class PeoplePage : ContentPage
 
         PeopleList.ItemsSource = state.People;
         PeopleList.SelectedItem = state.SelectedPerson;
+        GroupedList.ItemsSource = state.Teams;
         Show ();
     }
 
@@ -60,6 +61,15 @@ public partial class PeoplePage : ContentPage
         Show ($"Removed {person.Name} · {state.People.Count} people left.");
     }
 
+    void OnAddMemberClicked (object? sender, EventArgs e)
+    {
+        var team = state.Teams[state.MemberAdds % state.Teams.Count];
+        var person = CreatePerson (state.People.Count + state.MemberAdds);
+        state.MemberAdds++;
+        team.Add (person);
+        Show ($"Added {person.Name} to {team.Title} · {team.Count} members.");
+    }
+
     void Show (string? message = null)
     {
         var person = state.SelectedPerson;
@@ -69,10 +79,12 @@ public partial class PeoplePage : ContentPage
         RemoveButton.IsEnabled = person is not null;
     }
 
-    static Person NextPerson (SiteState state)
+    static Person NextPerson (SiteState state) => CreatePerson (state.People.Count);
+
+    static Person CreatePerson (int index)
     {
-        var (name, role) = Candidates[state.People.Count % Candidates.Length];
+        var (name, role) = Candidates[index % Candidates.Length];
         var initials = string.Concat (name.Split (' ').Select (part => char.ToUpperInvariant (part[0])));
-        return new Person (name, role, initials, Palette[state.People.Count % Palette.Length]);
+        return new Person (name, role, initials, Palette[index % Palette.Length]);
     }
 }

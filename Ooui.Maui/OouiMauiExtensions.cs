@@ -10,6 +10,8 @@ using MauiButton = Microsoft.Maui.Controls.Button;
 using MauiContentView = Microsoft.Maui.Controls.ContentView;
 using MauiLabel = Microsoft.Maui.Controls.Label;
 using MauiLayout = Microsoft.Maui.Controls.Layout;
+using MauiListView = Microsoft.Maui.Controls.ListView;
+using MauiRefreshView = Microsoft.Maui.Controls.RefreshView;
 
 namespace Ooui.Maui;
 
@@ -43,6 +45,11 @@ public static class OouiMauiExtensions
             handlers.AddHandler<FlexLayout, FlexLayoutHandler>();
             handlers.AddHandler<ScrollView, ScrollViewHandler>();
             handlers.AddHandler<CollectionView, CollectionViewHandler>();
+            handlers.AddHandler<MauiRefreshView, RefreshViewHandler>();
+            // ListView is deprecated in MAUI but supported for existing apps.
+#pragma warning disable CS0618
+            handlers.AddHandler<MauiListView, ListViewHandler>();
+#pragma warning restore CS0618
             handlers.AddHandler<Border, BorderHandler>();
             handlers.AddHandler<Microsoft.Maui.Controls.Image, ImageHandler>();
             handlers.AddHandler<Microsoft.Maui.Controls.RadioButton, RadioButtonHandler>();

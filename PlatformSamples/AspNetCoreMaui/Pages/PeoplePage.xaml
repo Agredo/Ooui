@@ -100,11 +100,61 @@
                 <RoundRectangle CornerRadius="18" />
             </Border.StrokeShape>
             <VerticalStackLayout Spacing="12">
+                <Label Style="{StaticResource CardHeading}" Text="People by team" />
+                <Label Style="{StaticResource Small}"
+                       Text="The same kind of list, but grouped: IsGrouped renders one block per team with a group header, and the list has a header and a footer of its own." />
+
+                <CollectionView x:Name="GroupedList"
+                                AutomationId="people-grouped"
+                                IsGrouped="True"
+                                SelectionMode="None">
+                    <CollectionView.Header>
+                        <Label AutomationId="grouped-header"
+                               Style="{StaticResource Small}"
+                               Text="Grouped list header" />
+                    </CollectionView.Header>
+                    <CollectionView.Footer>
+                        <Label AutomationId="grouped-footer"
+                               Style="{StaticResource Small}"
+                               Text="Grouped list footer" />
+                    </CollectionView.Footer>
+                    <CollectionView.GroupHeaderTemplate>
+                        <DataTemplate>
+                            <Label Text="{Binding Title}"
+                                   Margin="0,10,0,4"
+                                   FontAttributes="Bold"
+                                   TextColor="{StaticResource Ink}" />
+                        </DataTemplate>
+                    </CollectionView.GroupHeaderTemplate>
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Label Text="{Binding Name}"
+                                   Margin="12,2,0,2"
+                                   TextColor="{StaticResource Muted}" />
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                    <CollectionView.EmptyView>
+                        <Label Style="{StaticResource Small}" Text="No teams yet." />
+                    </CollectionView.EmptyView>
+                </CollectionView>
+
+                <Button Style="{StaticResource Secondary}"
+                        AutomationId="add-member"
+                        Text="Add member"
+                        Clicked="OnAddMemberClicked" />
+            </VerticalStackLayout>
+        </Border>
+
+        <Border Style="{StaticResource Card}">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="18" />
+            </Border.StrokeShape>
+            <VerticalStackLayout Spacing="12">
                 <Label Style="{StaticResource CardHeading}" Text="What happens under the hood" />
                 <Label Style="{StaticResource Small}"
                        Text="Selecting a row sends one message to the server, the handler flips aria-selected and calls SelectionChanged in C#." />
                 <Label Style="{StaticResource Small}"
-                       Text="Adding or removing an item raises CollectionChanged and only the containers are re-rendered — no page reload, no virtualisation. Grouping, headers and footers are still missing." />
+                       Text="Adding or removing an item raises CollectionChanged and only the affected containers are re-rendered — the other rows keep their DOM elements. No page reload, no virtualisation." />
             </VerticalStackLayout>
         </Border>
     </VerticalStackLayout>
