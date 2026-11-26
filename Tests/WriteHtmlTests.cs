@@ -84,6 +84,22 @@ namespace Tests
         }
 
         [TestMethod]
+        public void InputWithValueStyled ()
+        {
+            var e = new Input {
+                Value = "Hello World!",
+            };
+            Assert.AreEqual ("<input value=\"Hello World!\" />", OuterHtmlWithoutIds (e));
+        }
+
+        [TestMethod]
+        public void InputEmptyStyled ()
+        {
+            var e = new Input ();
+            Assert.AreEqual ("<input />", OuterHtmlWithoutIds (e));
+        }
+
+        [TestMethod]
         public void AnchorHRef ()
         {
             var e = new Anchor {

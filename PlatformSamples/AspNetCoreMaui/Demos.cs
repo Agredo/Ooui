@@ -25,7 +25,7 @@ static class Demos
         </svg>
         """;
 
-    public static ContentPage Overview () => Page (
+    public static ContentPage Overview (SiteState state, Ooui.AspNetCore.OouiUserSession session) => Page (
         new Border {
             AutomationId = "hero",
             BackgroundColor = Color.FromArgb ("#17213f"),
@@ -37,41 +37,42 @@ static class Demos
                 Children = {
                     new Label { Text = "OOUI  /  MAUI 11  /  ASP.NET CORE", TextColor = Color.FromArgb ("#bdb5ff"), FontSize = 13, CharacterSpacing = 2 },
                     new Label { Text = "Your next website, written in C#.", TextColor = Colors.White, FontSize = 42, FontAttributes = FontAttributes.Bold, AutomationId = "hero-title" },
-                    new Label { Text = "Familiar .NET controls become native browser elements. State stays on the server, every tab gets its own page.", TextColor = Color.FromArgb ("#d3d0ef"), FontSize = 18, LineHeight = 1.35 },
+                    new Label { Text = "Familiar .NET controls become native browser elements. State stays on the server, each browser gets its own session.", TextColor = Color.FromArgb ("#d3d0ef"), FontSize = 18, LineHeight = 1.35 },
                 },
             },
         },
         Card ("Server-rendered MAUI",
             "Ooui.Maui registers a MAUI handler per control and translates the visual tree into HTML elements.",
             Body ("A click is sent over the WebSocket, handled in C#, and only the changed attributes are sent back.")),
-        Card ("One page per session",
-            "Every request to a demo route builds a new ContentPage. Two browser tabs never share state.",
-            Body ("Open the counter in a second tab and count on both: the numbers stay independent.")),
+        Card ("State that outlives the page",
+            "Pages are rebuilt on every request. Everything that has to survive lives in the user session of this browser.",
+            Body ($"Counter: {state.Count} · pages seen: {state.Pages} · name: {(string.IsNullOrWhiteSpace (state.Name) ? "not entered yet" : state.Name)}"),
+            Small ($"Session {session.Id[..8]} · stored in memory while you keep browsing. Navigation, reload and the back button all keep it.")),
         Card ("A small, honest foundation",
             "Labels, buttons, inputs, pickers, sliders, grids, borders and a few more controls are supported.",
-            Small ("Navigation, CollectionView, Shell and animations are not implemented yet. This sample is a demonstration, not a production platform.")));
+            Small ("Shell, CollectionView and animations are not implemented yet. This sample is a demonstration, not a production platform.")));
 
-    public static ContentPage Counter ()
+    public static ContentPage Counter (SiteState state)
     {
-        var count = 0;
-        var value = new Label { Text = "0", FontSize = 64, FontAttributes = FontAttributes.Bold, TextColor = Accent, AutomationId = "count" };
-        var status = Small ("No clicks yet.");
+        var value = new Label { Text = state.Count.ToString (), FontSize = 64, FontAttributes = FontAttributes.Bold, TextColor = Accent, AutomationId = "count" };
+        var status = Small (state.CounterNote);
 
         void Update (string message)
         {
-            value.Text = count.ToString ();
+            state.CounterNote = message;
+            value.Text = state.Count.ToString ();
             status.Text = message;
             status.TextColor = Muted;
         }
 
         var decrement = Secondary ("−1", "decrement");
-        decrement.Clicked += (_, _) => { count--; Update ($"Decremented to {count}."); };
+        decrement.Clicked += (_, _) => { state.Count--; Update ($"Decremented to {state.Count}."); };
 
         var increment = Primary ("+1", "increment");
-        increment.Clicked += (_, _) => { count++; Update ($"Incremented to {count}."); };
+        increment.Clicked += (_, _) => { state.Count++; Update ($"Incremented to {state.Count}."); };
 
         var reset = Secondary ("Reset", "reset");
-        reset.Clicked += (_, _) => { count = 0; Update ("Counter reset."); };
+        reset.Clicked += (_, _) => { state.Count = 0; Update ("Counter reset."); };
 
         return Page (
             Heading ("Counter"),
@@ -91,15 +92,17 @@ static class Demos
                     },
                 },
             },
-            Card ("Why a round trip?",
-                "The counter lives in a closure on the server, not in the browser.",
-                Small ("Reload the page and it starts at 0 again: the page instance belongs to one session.")));
+            Card ("Why does the number stay?",
+                "The counter lives in the user session of this browser, not in the page and not in the tab.",
+                Small ("Visit another page or reload: the number is still there. Open the site in a second browser and you get a second session, starting at 0.")));
     }
 
-    public static ContentPage Form ()
+    public static ContentPage Form (SiteState state)
     {
-        var name = new Entry { Placeholder = "e.g. Northstar", AutomationId = "name" };
-        var email = new Entry { Placeholder = "you@example.com", AutomationId = "email" };
+        var name = new Entry { Placeholder = "e.g. Northstar", Text = state.Name, AutomationId = "name" };
+        name.TextChanged += (_, e) => state.Name = e.NewTextValue ?? "";
+        var email = new Entry { Placeholder = "you@example.com", Text = state.Email, AutomationId = "email" };
+        email.TextChanged += (_, e) => state.Email = e.NewTextValue ?? "";
         var role = new Picker { Title = "Choose a project type", AutomationId = "role" };
         role.ItemsSource = new[] { "Marketing site", "Customer portal", "Internal dashboard" };
         role.SelectedIndex = 0;
@@ -116,9 +119,10 @@ static class Demos
 
         var notifications = new Switch { IsToggled = true, OnColor = Accent, AutomationId = "notifications" };
         var terms = new CheckBox { IsChecked = false, Color = Accent, AutomationId = "terms" };
-        var notes = new Editor { Placeholder = "What makes this project special?", HeightRequest = 110, MaxLength = 400, AutomationId = "notes" };
+        var notes = new Editor { Placeholder = "What makes this project special?", Text = state.Notes, HeightRequest = 110, MaxLength = 400, AutomationId = "notes" };
+        notes.TextChanged += (_, e) => state.Notes = e.NewTextValue ?? "";
 
-        var status = Small ("Nothing saved yet.");
+        var status = Small (state.FormNote);
         status.AutomationId = "form-status";
 
         var submit = Primary ("Submit", "submit");
@@ -137,30 +141,35 @@ static class Demos
             status.TextColor = Success;
             var at = time.Time ?? new TimeSpan (10, 0, 0);
             var when = $"{date.Date:yyyy-MM-dd} {at.Hours:00}:{at.Minutes:00}";
-            status.Text = $"Saved {name.Text.Trim ()} · {role.SelectedItem} · {when} · budget {budget.Value:0} %"
+            state.FormNote = $"Saved {name.Text.Trim ()} · {role.SelectedItem} · {when} · budget {budget.Value:0} %"
                 + (notifications.IsToggled ? " · team notified" : "");
+            status.Text = state.FormNote;
         };
 
         var clear = Secondary ("Reset", "reset-form");
         clear.Clicked += (_, _) => {
             name.Text = string.Empty;
             email.Text = string.Empty;
+            notes.Text = string.Empty;
+            state.Name = "";
+            state.Email = "";
+            state.Notes = "";
             role.SelectedIndex = 0;
             date.Date = DateTime.Today.AddDays (14);
             time.Time = new TimeSpan (10, 0, 0);
             budget.Value = 68;
             notifications.IsToggled = true;
             terms.IsChecked = false;
-            notes.Text = string.Empty;
+            state.FormNote = "Sample values restored. Only this session changed.";
             status.TextColor = Muted;
-            status.Text = "Sample values restored. Only this session changed.";
+            status.Text = state.FormNote;
         };
 
         return Page (
             Heading ("Form"),
-            Lead ("Entries, pickers, sliders and switches — all bound to plain C# local state."),
+            Lead ("Entries, pickers, sliders and switches — all bound to plain C# state."),
             Card ("Launch a new idea",
-                "The submitted summary is composed on the server.",
+                "Your draft belongs to this browser: type a name, visit another page, come back — it is still there.",
                 Caption ("PROJECT NAME"), name,
                 Caption ("CONTACT"), email,
                 Caption ("PROJECT TYPE"), role,

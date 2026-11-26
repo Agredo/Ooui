@@ -413,8 +413,17 @@ namespace Ooui
 
         public static string RenderTemplate (string webSocketPath, string title = "", string initialHtml = "")
         {
+            return RenderTemplate (webSocketPath, title, initialHtml, BodyHeaderHtml);
+        }
+
+        /// <summary>
+        /// Renders the page template with a body header that belongs to this response
+        /// instead of the application wide <see cref="BodyHeaderHtml"/>.
+        /// </summary>
+        public static string RenderTemplate (string webSocketPath, string title, string initialHtml, string bodyHeaderHtml)
+        {
             using (var w = new System.IO.StringWriter ()) {
-                RenderTemplate (w, webSocketPath, title, initialHtml);
+                RenderTemplate (w, webSocketPath, title, initialHtml, bodyHeaderHtml);
                 return w.ToString ();
             }
         }
@@ -425,6 +434,11 @@ namespace Ooui
         }
 
         public static void RenderTemplate (TextWriter writer, string webSocketPath, string title, string initialHtml)
+        {
+            RenderTemplate (writer, webSocketPath, title, initialHtml, BodyHeaderHtml);
+        }
+
+        public static void RenderTemplate (TextWriter writer, string webSocketPath, string title, string initialHtml, string bodyHeaderHtml)
         {
             writer.Write (@"<!DOCTYPE html>
 <html>
@@ -440,7 +454,7 @@ namespace Ooui
             writer.WriteLine (@"  </style>
 </head>
 <body>");
-            writer.WriteLine (BodyHeaderHtml);
+            writer.WriteLine (bodyHeaderHtml ?? BodyHeaderHtml);
             writer.WriteLine (@"<div id=""ooui-body"" class=""container-fluid"" style=""padding:0;margin:0"">");
             writer.WriteLine (initialHtml);
             writer.Write (@"</div>

@@ -76,6 +76,18 @@ namespace Ooui
             Type = type;
         }
 
+#if !NO_XML
+
+        protected override void WriteHtmlAttributes (System.Xml.XmlWriter w)
+        {
+            base.WriteHtmlAttributes (w);
+            if (!string.IsNullOrEmpty (val) && GetAttribute ("value") == null) {
+                w.WriteAttributeString ("value", val);
+            }
+        }
+
+#endif
+
         protected override bool TriggerEventFromMessage (Message message)
         {
             if (message.TargetId == Id && message.MessageType == MessageType.Event && (message.Key == "change" || message.Key == "input" || message.Key == "keyup")) {

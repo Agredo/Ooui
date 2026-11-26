@@ -146,7 +146,7 @@ Then open <http://localhost:8099/Samples/Clicker>. Note that this sample still u
 
 ### MAUI pages in ASP.NET Core
 
-`PlatformSamples/AspNetCoreMaui` goes the other way round: it hosts `Microsoft.Maui.Controls` pages, renders them with `Ooui.Maui`, and serves them from Kestrel. Every request creates one MAUI page, so each browser tab gets an independent session with live web socket updates.
+`PlatformSamples/AspNetCoreMaui` goes the other way round: it hosts `Microsoft.Maui.Controls` pages, renders them with `Ooui.Maui`, and serves them from Kestrel. Every request creates one MAUI page, so pages are cheap and rebuildable — the numbers and drafts a visitor expects to keep live in a per browser session (see below).
 
 ```bash
 dotnet run --project PlatformSamples/AspNetCoreMaui/AspNetCoreMaui.csproj   # http://localhost:8090
@@ -155,9 +155,10 @@ dotnet run --project PlatformSamples/AspNetCoreMaui/AspNetCoreMaui.csproj   # ht
 | Route | Shows |
 | --- | --- |
 | `/` | `Grid`/`Border`/`Image` hero, `FlexLayout` cards |
-| `/counter` | `Label` + `Button` round trip, per-session state |
+| `/counter` | `Label` + `Button` round trip, per browser state |
 | `/form` | `Entry`, `Editor`, `Picker`, `DatePicker`, `TimePicker`, `Slider`, `Stepper`, `CheckBox`, `Switch` and server-side validation |
 | `/controls` | `ProgressBar`, `ActivityIndicator`, `BoxView`, `SearchBar`, nested stack layouts |
+| `/reset` | clears the session and redirects to `/` |
 
 The wiring is two lines of setup plus a controller action:
 
@@ -168,12 +169,56 @@ var maui = MauiApp.CreateBuilder ()
     .Build ();
 
 builder.Services.AddSingleton<IMauiContext> (new MauiContext (maui.Services));
+builder.Services.AddOouiUserSessions ();
+
+SiteState BrowserState => HttpContext.GetOouiUserSession ()
+    .GetOrAdd (SiteState.Key, () => new SiteState ());
 
 public IActionResult Index () =>
-    new ElementResult (Demos.Overview ().ToOouiElement (mauiContext), title: "Ooui + MAUI");
+    new ElementResult (Demos.Overview (BrowserState, HttpContext.GetOouiUserSession ()).ToOouiElement (mauiContext), title: "Ooui + MAUI");
 ```
 
 Registering the context **as `IMauiContext`** is what lets the ASP.NET Core container resolve it in the controller. Navigation pages, Shell, `CollectionView` and gestures are not supported yet, so the sample sticks to plain `ContentPage` roots.
+
+### Multiple pages and session state
+
+Every request builds a fresh MAUI page, so nothing survives on the element tree. State that has to outlive a page belongs to the browser instead, which is what `OouiUserSessions` provides:
+
+```csharp
+builder.Services.AddOouiUserSessions (o => {
+    o.CookieName = "ooui.sid";                     // default
+    o.IdleTimeout = TimeSpan.FromMinutes (30);     // default
+});
+
+app.UseOoui ();
+app.UseOouiUserSessions ();   // sets and reads the session cookie
+```
+
+`UseOouiUserSessions` gives each browser a cookie (`HttpOnly`, `SameSite=Lax`, `Secure` on HTTPS) and puts the matching session into `HttpContext.Items`, so any action can reach it:
+
+```csharp
+public IActionResult Counter ()
+{
+    var session = HttpContext.GetOouiUserSession ();
+    var state = session.GetOrAdd (SiteState.Key, () => new SiteState ());   // one instance per browser
+
+    var label = new Label { Text = state.Count.ToString () };
+    var button = new Button { Text = "Increase" };
+    button.Click += (s, e) => {
+        state.Count++;
+        label.Text = state.Count.ToString ();
+    };
+
+    return new ElementResult (Page (label, button), title: "Counter",
+        bodyHeaderHtml: DemoStyles.Navigation (Request.Path));
+}
+```
+
+Because the state is per browser, deep links, reloads and the back button all show the same page again; a second browser is a second session. The sample calls `session.Clear()` from `/reset` and redirects back to `/`; the browser keeps its cookie and its session id, only the stored values are gone.
+
+`ElementResult.BodyHeaderHtml` renders page chrome for this response only — the sample uses it to mark the current route with `aria-current="page"` instead of the application wide `UI.BodyHeaderHtml`.
+
+Two limits are worth knowing: the store lives in the memory of one process, so scaling out needs sticky sessions or a distributed implementation of the store, and disposed values are only released by the idle sweep (every `SweepInterval`, default one minute). Values that arrive from the server are also part of the initial HTML (`<input value="…">`, textarea content), so a reload never flashes an empty form while the web socket connects.
 
 
 ## Example App

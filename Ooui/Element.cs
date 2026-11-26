@@ -275,18 +275,28 @@ namespace Ooui
             if (style.Length > 0) {
                 w.WriteAttributeString ("style", style);
             }
-            lock (attributes) {
-                foreach (var a in attributes) {
-                    var value = (a.Value == null) ? "null" : Convert.ToString (a.Value, System.Globalization.CultureInfo.InvariantCulture);
-                    w.WriteAttributeString (a.Key, value);
-                }
-            }
+            WriteHtmlAttributes (w);
             WriteInnerHtml (w);
             if (HtmlNeedsFullEndElement) {
                 w.WriteFullEndElement ();
             }
             else {
                 w.WriteEndElement ();
+            }
+        }
+
+        /// <summary>
+        /// Writes the HTML attributes of this element. Override to add values that are
+        /// kept as properties (and therefore only sent over the web socket) but still
+        /// belong into the markup of a server rendered page.
+        /// </summary>
+        protected virtual void WriteHtmlAttributes (System.Xml.XmlWriter w)
+        {
+            lock (attributes) {
+                foreach (var a in attributes) {
+                    var value = (a.Value == null) ? "null" : Convert.ToString (a.Value, System.Globalization.CultureInfo.InvariantCulture);
+                    w.WriteAttributeString (a.Key, value);
+                }
             }
         }
 

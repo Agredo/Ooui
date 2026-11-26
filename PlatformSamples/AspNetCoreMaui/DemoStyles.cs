@@ -2,17 +2,39 @@ namespace AspNetCoreMaui;
 
 static class DemoStyles
 {
-    public const string NavigationHtml = """
-        <header class="ooui-nav">
-          <a class="ooui-brand" href="/">Ooui <span>×</span> MAUI 11</a>
-          <nav>
-            <a href="/">Overview</a>
-            <a href="/counter">Counter</a>
-            <a href="/form">Form</a>
-            <a href="/controls">Controls</a>
-          </nav>
-        </header>
-        """;
+    /// <summary>
+    /// Renders the navigation bar for one response and marks the page that is currently shown.
+    /// </summary>
+    public static string Navigation (string currentPath)
+    {
+        var builder = new System.Text.StringBuilder ();
+        builder.Append ("<header class=\"ooui-nav\">\n");
+        builder.Append ("  <a class=\"ooui-brand\" href=\"/\">Ooui <span>×</span> MAUI 11</a>\n");
+        builder.Append ("  <nav>");
+        var page = Normalize (currentPath);
+        foreach (var (path, label) in Links) {
+            var current = string.Equals (page, path, System.StringComparison.OrdinalIgnoreCase)
+                ? " aria-current=\"page\""
+                : "";
+            builder.Append ("\n    <a href=\"").Append (path).Append ('"').Append (current).Append ('>').Append (label).Append ("</a>");
+        }
+        builder.Append ("\n  </nav>\n</header>");
+        return builder.ToString ();
+    }
+
+    static readonly (string Path, string Label)[] Links = {
+        ("/", "Overview"),
+        ("/counter", "Counter"),
+        ("/form", "Form"),
+        ("/controls", "Controls"),
+        ("/reset", "Reset session"),
+    };
+
+    static string Normalize (string path)
+    {
+        if (string.IsNullOrEmpty (path)) return "/";
+        return path.Length > 1 ? path.TrimEnd ('/') : path;
+    }
 
     public const string HeadHtml = """
         <style>
@@ -24,6 +46,7 @@ static class DemoStyles
                         padding: 16px 24px; background: #17213f; }
             .ooui-nav a { color: #d3d0ef; text-decoration: none; font-size: 15px; }
             .ooui-nav a:hover { color: #fff; }
+            .ooui-nav a[aria-current="page"] { color: #fff; font-weight: 600; box-shadow: inset 0 -2px 0 #8f7dff; }
             .ooui-nav nav { display: flex; gap: 20px; flex-wrap: wrap; }
             .ooui-brand { font-weight: 700; letter-spacing: .5px; color: #fff !important; }
             .ooui-brand span { color: #8f7dff; }
