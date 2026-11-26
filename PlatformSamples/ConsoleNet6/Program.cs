@@ -16,6 +16,7 @@ public static class Program
             .Build();
 
         app.Publish();
+        Ooui.UI.HeadHtml = DemoStyles.Html;
         Console.WriteLine($"MAUI 11 on Ooui: {Ooui.UI.GetUrl("/")}");
         Thread.Sleep(Timeout.Infinite);
     }

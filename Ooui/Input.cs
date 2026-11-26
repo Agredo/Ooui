@@ -50,17 +50,17 @@ namespace Ooui
 
         public double Minimum {
             get => GetAttribute ("min", 0.0);
-            set => SetAttributeProperty ("min", value);
+            set => SetAttributeProperty ("min", value.ToString(System.Globalization.CultureInfo.InvariantCulture));
         }
 
         public double Maximum {
             get => GetAttribute ("max", 100.0);
-            set => SetAttributeProperty ("max", value);
+            set => SetAttributeProperty ("max", value.ToString(System.Globalization.CultureInfo.InvariantCulture));
         }
 
         public double Step {
             get => GetAttribute ("step", 1.0);
-            set => SetAttributeProperty ("step", value);
+            set => SetAttributeProperty ("step", value.ToString(System.Globalization.CultureInfo.InvariantCulture));
         }
 
         public Input ()

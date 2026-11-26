@@ -6,9 +6,11 @@ namespace Ooui.Maui.Handlers;
 public class ButtonHandler : OouiViewHandler<IButton, Button>, IButtonHandler
 {
     public static readonly IPropertyMapper<IButton, ButtonHandler> Mapper =
-        new PropertyMapper<IButton, ButtonHandler>(LabelHandler.Mapper)
+        new PropertyMapper<IButton, ButtonHandler>(OouiViewMapper.Mapper)
         {
             [nameof(IText.Text)] = MapText,
+            [nameof(ITextStyle.TextColor)] = (handler, button) => OouiStyle.SetTextColor((Element)handler.PlatformView!, button as ITextStyle),
+            [nameof(ITextStyle.Font)] = (handler, button) => OouiStyle.SetFont((Element)handler.PlatformView!, button as ITextStyle),
             [nameof(IButton.Padding)] = MapPadding,
             [nameof(IButtonStroke.StrokeThickness)] = MapStroke,
             [nameof(IButtonStroke.StrokeColor)] = MapStroke,

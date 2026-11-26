@@ -22,8 +22,14 @@ internal static class OouiStyle
         SetDimension(style, $"{prefix}-left", thickness.Left);
     }
 
-    public static void SetFont(Element element, ITextStyle text)
+    public static void SetTextColor(Element element, ITextStyle? text)
     {
+        if (text is not null) element.Style.Color = ToCss(text.TextColor);
+    }
+
+    public static void SetFont(Element element, ITextStyle? text)
+    {
+        if (text is null) return;
         element.Style.FontFamily = text.Font.Family;
         element.Style.FontSize = text.Font.Size > 0 ? text.Font.Size : null;
         element.Style.FontWeight = text.Font.Weight switch

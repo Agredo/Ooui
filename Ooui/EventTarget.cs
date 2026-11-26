@@ -218,8 +218,29 @@ namespace Ooui
                 }
             }
             if (handlers != null) {
-                var args = new TargetEventArgs ();
+                var args = new TargetEventArgs { Value = message.Value as string };
+                if (message.Value is System.Collections.IDictionary dictionary)
+                {
+                    args.Value = dictionary["key"] as string;
+                    if (dictionary["scrollLeft"] is double scrollLeft &&
+                        dictionary["scrollTop"] is double scrollTop &&
+                        dictionary["scrollWidth"] is double scrollWidth &&
+                        dictionary["scrollHeight"] is double scrollHeight)
+                    {
+                        args.ScrollX = scrollLeft;
+                        args.ScrollY = scrollTop;
+                        args.ContentWidth = scrollWidth;
+                        args.ContentHeight = scrollHeight;
+                    }
+                }
                 if (message.Value is Newtonsoft.Json.Linq.JObject o) {
+                    if (o["scrollLeft"] != null && o["scrollTop"] != null && o["scrollWidth"] != null && o["scrollHeight"] != null)
+                    {
+                        args.ScrollX = (double)o["scrollLeft"];
+                        args.ScrollY = (double)o["scrollTop"];
+                        args.ContentWidth = (double)o["scrollWidth"];
+                        args.ContentHeight = (double)o["scrollHeight"];
+                    }
                     if (o["offsetX"] != null)
                     {
                         args.OffsetX = (double)o["offsetX"];
@@ -267,5 +288,10 @@ namespace Ooui
         public double OffsetY { get; set; }
         public double ClientHeight { get; set; }
         public double ClientWidth { get; set; }
+        public double ContentHeight { get; set; }
+        public double ContentWidth { get; set; }
+        public double ScrollX { get; set; }
+        public double ScrollY { get; set; }
+        public string Value { get; set; }
     }
 }

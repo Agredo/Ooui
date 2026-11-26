@@ -20,6 +20,8 @@ namespace Ooui
         readonly CancellationToken token;
 
         readonly System.Timers.Timer sendThrottle;
+        readonly SemaphoreSlim sendLock = new SemaphoreSlim (1, 1);
+        int transmitting;
         DateTime lastTransmitTime = DateTime.MinValue;
         readonly TimeSpan throttleInterval = TimeSpan.FromSeconds (1.0 / UI.MaxFps);
 
@@ -132,34 +134,40 @@ namespace Ooui
 
         async void TransmitQueuedMessages ()
         {
+            if (Interlocked.Exchange (ref transmitting, 1) != 0)
+                return;
             try {
-                //
-                // Dequeue as many messages as we can
-                //
-                var messagesToSend = new List<Message> ();
-                System.Runtime.CompilerServices.ConfiguredTaskAwaitable task;
-                lock (queuedMessages) {
-                    messagesToSend.AddRange (queuedMessages);
-                    queuedMessages.Clear ();
+                await sendLock.WaitAsync (token).ConfigureAwait (false);
+                try {
+                    while (!token.IsCancellationRequested) {
+                        List<Message> messagesToSend;
+                        lock (queuedMessages) {
+                            messagesToSend = new List<Message> (queuedMessages);
+                            queuedMessages.Clear ();
+                        }
+                        if (messagesToSend.Count == 0)
+                            return;
 
-                    if (messagesToSend.Count == 0)
-                        return;
-
-                    //
-                    // Now actually send this message
-                    // Do this while locked to make sure SendAsync is called in the right order
-                    //
-                    var json = Newtonsoft.Json.JsonConvert.SerializeObject (messagesToSend);
-                    var outputBuffer = new ArraySegment<byte> (Encoding.UTF8.GetBytes (json));
-                    //Console.WriteLine ("TRANSMIT " + json);
-                    task = webSocket.SendAsync (outputBuffer, WebSocketMessageType.Text, true, token).ConfigureAwait (false);
+                        var json = Newtonsoft.Json.JsonConvert.SerializeObject (messagesToSend);
+                        var outputBuffer = new ArraySegment<byte> (Encoding.UTF8.GetBytes (json));
+                        await webSocket.SendAsync (outputBuffer, WebSocketMessageType.Text, true, token).ConfigureAwait (false);
+                    }
                 }
-                await task;
+                finally {
+                    sendLock.Release ();
+                }
             }
             catch (Exception ex) {
                 Error ("Failed to send queued messages, aborting session", ex);
                 element.MessageSent -= handleElementMessageSent;
                 sessionCts.Cancel ();
+            }
+            finally {
+                Volatile.Write (ref transmitting, 0);
+                lock (queuedMessages) {
+                    if (queuedMessages.Count > 0 && !token.IsCancellationRequested)
+                        sendThrottle.Enabled = true;
+                }
             }
         }
     }

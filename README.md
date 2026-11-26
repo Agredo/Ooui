@@ -54,7 +54,7 @@ app.Publish();
 Thread.Sleep(Timeout.Infinite);
 ```
 
-Run the included counter sample and open <http://localhost:8080/>:
+Run the included interactive showcase and open <http://localhost:8080/>. It demonstrates data binding, validation and focus, form editing and reset, save/busy feedback, activity filtering, scrolling, responsive cards, and independent browser sessions:
 
 ```bash
 dotnet run --project PlatformSamples/ConsoleNet6/ConsoleNet6.csproj
@@ -62,7 +62,19 @@ dotnet run --project PlatformSamples/ConsoleNet6/ConsoleNet6.csproj
 
 Each WebSocket connection creates its own window and view hierarchy. Closing the connection disconnects the handlers and destroys that window. Shared application services are still shared, so per-user state belongs in the window or page rather than in singleton services.
 
-The current proof of concept supports `ContentPage`, `ContentView`, `VerticalStackLayout`, `HorizontalStackLayout`, `Label`, and `Button`, including common text, color, sizing, padding, and interaction properties. It is not a complete MAUI platform: there is no browser-based text measurement, navigation/Shell implementation, or handler coverage for most controls. The server dispatcher and session lifecycle are experimental and need further validation before production use.
+### Current control support
+
+| Area | Controls and behavior |
+| ---- | --------------------- |
+| Pages and layout | `ContentPage`, `ContentView`, vertical/horizontal stacks, `Grid` (automatic and explicit placement), `FlexLayout`, `ScrollView`, `Border`, `BoxView` |
+| Forms | `Entry`, `Editor`, `CheckBox`, `Switch`, `Slider`, `Stepper`, `Picker`, `DatePicker`, `TimePicker`, `SearchBar` |
+| Display and feedback | `Label`, `Button`, `Image`, `ProgressBar`, `ActivityIndicator`, focus requests |
+
+Common text, font, color, sizing, padding, transformation, interaction, and enabled/visibility properties are mapped by the browser handlers. Browser edits update MAUI properties and bindings, while server-side changes update live DOM form values.
+
+### Limitations
+
+This remains an experimental browser backend, **not a complete MAUI web platform**. `Shell`, navigation, `CollectionView`, and accessibility/localization infrastructure are not implemented. Layout uses browser CSS rather than complete MAUI text measurement and native layout semantics. `Image` currently supports URL and file-name sources, `DatePicker`/`TimePicker` do not apply custom `Format` values, and `Stepper` is represented by a number input. The built-in server hosts application logic and per-session state on the server; it is not a client-side MAUI runtime. Production deployment, authentication, reconnect behavior, and scale-out require additional application design and validation.
 
 Run the focused handler and session tests with:
 

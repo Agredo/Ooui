@@ -122,8 +122,10 @@ namespace Ooui
                                 i = se + 1;
                             }
                             break;
-                        case 'v':
-                            m.Value = JsonConvert.ReadJsonValue (json, i + 4);
+                        case 'v': {
+                                i += 4;
+                                m.Value = JsonConvert.ReadJsonValue (json, ref i);
+                            }
                             break;
                     }
                 }

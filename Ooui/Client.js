@@ -224,6 +224,15 @@ function monitorSizeChanges (millis)
     window.addEventListener("resize", resizeThrottler, false);
 }
 
+const keyboardEvents = {
+    keydown: true,
+    keypress: true,
+};
+
+const scrollEvents = {
+    scroll: true,
+};
+
 function getBodyNode() {
     const bodyNode = document.getElementById("ooui-body");
     return bodyNode || document.body;
@@ -286,6 +295,12 @@ function msgSetAttr (m) {
         return;
     }
     node.setAttribute(m.k, m.v);
+    if (m.k === "value" && ("value" in node)) {
+        node.value = m.v;
+    }
+    else if (m.k === "checked" && ("checked" in node)) {
+        node.checked = true;
+    }
     if (debug) console.log ("SetAttr", node, m.k, m.v);
 }
 
@@ -297,6 +312,9 @@ function msgRemAttr (m) {
         return;
     }
     node.removeAttribute(m.k);
+    if (m.k === "checked" && ("checked" in node)) {
+        node.checked = false;
+    }
     if (debug) console.log ("RemAttr", node, m.k);
 }
 
@@ -356,6 +374,19 @@ function msgListen (m) {
             em.v = {
                 offsetX: e.offsetX,
                 offsetY: e.offsetY,
+            };
+        }
+        else if (keyboardEvents[m.k]) {
+            em.v = e.key;
+        }
+        else if (scrollEvents[m.k]) {
+            em.v = {
+                scrollLeft: node.scrollLeft,
+                scrollTop: node.scrollTop,
+                scrollWidth: node.scrollWidth,
+                scrollHeight: node.scrollHeight,
+                clientWidth: node.clientWidth,
+                clientHeight: node.clientHeight
             };
         }
         else if (elementEvents[m.k]) {

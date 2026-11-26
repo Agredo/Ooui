@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using Microsoft.Maui.Handlers;
 using ILayout = Microsoft.Maui.ILayout;
 
@@ -6,26 +7,15 @@ namespace Ooui.Maui.Handlers;
 public class LayoutHandler : OouiViewHandler<ILayout, Div>, ILayoutHandler
 {
     public static readonly IPropertyMapper<ILayout, LayoutHandler> Mapper =
-        new PropertyMapper<ILayout, LayoutHandler>(ViewMapper)
+        new PropertyMapper<ILayout, LayoutHandler>(OouiViewMapper.Mapper)
         {
-            [nameof(IView.AutomationId)] = MapAutomationId,
-            [nameof(IView.Background)] = MapBackground,
-            [nameof(IView.Width)] = MapWidth,
-            [nameof(IView.Height)] = MapHeight,
-            [nameof(IView.MinimumWidth)] = MapMinimumWidth,
-            [nameof(IView.MinimumHeight)] = MapMinimumHeight,
-            [nameof(IView.MaximumWidth)] = MapMaximumWidth,
-            [nameof(IView.MaximumHeight)] = MapMaximumHeight,
-            [nameof(IView.IsEnabled)] = MapIsEnabled,
-            [nameof(IView.Opacity)] = MapOpacity,
-            [nameof(IView.Visibility)] = MapVisibility,
-            [nameof(IView.InputTransparent)] = MapInputTransparent,
-            [nameof(IToolTipElement.ToolTip)] = MapToolTip,
             [nameof(ILayout.ClipsToBounds)] = MapClipsToBounds,
+            [nameof(IPadding.Padding)] = MapPadding,
         };
 
-    public static readonly CommandMapper<ILayout, LayoutHandler> CommandMapper = new(ViewCommandMapper)
+    public static readonly CommandMapper<ILayout, LayoutHandler> CommandMapper = new(OouiViewMapper.CommandMapper)
     {
+        [nameof(IView.InvalidateMeasure)] = (handler, _, _) => handler.UpdateLayout(),
         [nameof(ILayoutHandler.Add)] = (handler, _, args) => Add(handler, args),
         [nameof(ILayoutHandler.Remove)] = (handler, _, args) => Remove(handler, args),
         [nameof(ILayoutHandler.Clear)] = (handler, _, _) => handler.Clear(),
@@ -35,6 +25,10 @@ public class LayoutHandler : OouiViewHandler<ILayout, Div>, ILayoutHandler
     };
 
     public LayoutHandler() : base(Mapper, CommandMapper) { }
+
+    protected LayoutHandler(IPropertyMapper<ILayout, LayoutHandler> mapper) : base(mapper, CommandMapper) { }
+
+    protected virtual void OnChildPropertyChanged(IView view, string propertyName) { }
 
     ILayout ILayoutHandler.VirtualView => VirtualView;
     object ILayoutHandler.PlatformView => PlatformView;
@@ -50,7 +44,11 @@ public class LayoutHandler : OouiViewHandler<ILayout, Div>, ILayoutHandler
             Add(child);
     }
 
-    public void Add(IView view) => Insert(PlatformView.Children.Count, view);
+    public void Add(IView view)
+    {
+        Insert(PlatformView.Children.Count, view);
+        UpdateLayout();
+    }
 
     public void Insert(int index, IView view)
     {
@@ -60,12 +58,22 @@ public class LayoutHandler : OouiViewHandler<ILayout, Div>, ILayoutHandler
         var reference = index < PlatformView.Children.Count ? PlatformView.Children[index] : null;
         PlatformView.InsertBefore(element, reference);
         UpdateZIndex(view);
+        UpdateChild(view);
+        if (view is INotifyPropertyChanged notifyingChanged)
+        {
+            void ChildChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs args) => OnChildPropertyChanged(view, args.PropertyName ?? "");
+            notifyingChanged.PropertyChanged += ChildChanged;
+            childPropertyHandlers[view] = ChildChanged;
+        }
     }
 
     public void Remove(IView view)
     {
+        if (childPropertyHandlers.Remove(view, out var handler) && view is INotifyPropertyChanged notifying)
+            notifying.PropertyChanged -= handler;
         if (view.Handler is IElementHandler { PlatformView: Element element } && PlatformView.Children.Contains(element))
             PlatformView.RemoveChild(element);
+        UpdateLayout();
     }
 
     public void Update(int index, IView view)
@@ -73,12 +81,15 @@ public class LayoutHandler : OouiViewHandler<ILayout, Div>, ILayoutHandler
         if (index >= 0 && index < PlatformView.Children.Count)
             PlatformView.RemoveChild(PlatformView.Children[index]);
         Insert(index, view);
+        UpdateLayout();
     }
 
     public void Clear()
     {
+        foreach (var view in childPropertyHandlers.Keys.ToArray()) Remove(view);
         foreach (var child in PlatformView.Children.ToArray())
             PlatformView.RemoveChild(child);
+        UpdateLayout();
     }
 
     public void UpdateZIndex(IView view)
@@ -87,7 +98,19 @@ public class LayoutHandler : OouiViewHandler<ILayout, Div>, ILayoutHandler
             element.Style.ZIndex = view.ZIndex;
     }
 
-    void UpdateLayout()
+    protected virtual void UpdateChild(IView view) { }
+
+    readonly Dictionary<IView, System.ComponentModel.PropertyChangedEventHandler> childPropertyHandlers = new();
+
+    protected override void DisconnectHandler(Div platformView)
+    {
+        foreach (var pair in childPropertyHandlers)
+            if (pair.Key is INotifyPropertyChanged notifying) notifying.PropertyChanged -= pair.Value;
+        childPropertyHandlers.Clear();
+        base.DisconnectHandler(platformView);
+    }
+
+    protected virtual void UpdateLayout()
     {
         var style = PlatformView.Style;
         style["flex-direction"] = VirtualView is HorizontalStackLayout ? "row" : "column";
@@ -96,6 +119,8 @@ public class LayoutHandler : OouiViewHandler<ILayout, Div>, ILayoutHandler
         OouiStyle.SetDimension(style, "column-gap", spacing ?? double.NaN);
         OouiStyle.SetThickness(style, VirtualView.Padding);
     }
+
+    public static void MapPadding(LayoutHandler handler, ILayout layout) => handler.UpdateLayout();
 
     public static void MapClipsToBounds(LayoutHandler handler, ILayout layout) =>
         handler.PlatformView.Style.Overflow = layout.ClipsToBounds ? "hidden" : null;

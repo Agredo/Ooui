@@ -5,29 +5,8 @@ namespace Ooui.Maui.Handlers;
 public class LabelHandler : OouiViewHandler<ILabel, Span>, ILabelHandler
 {
     public static readonly IPropertyMapper<ILabel, LabelHandler> Mapper =
-        new PropertyMapper<ILabel, LabelHandler>(ViewMapper)
+        new PropertyMapper<ILabel, LabelHandler>(OouiViewMapper.Mapper)
         {
-            [nameof(IView.AutomationId)] = MapAutomationId,
-            [nameof(IView.Background)] = MapBackground,
-            [nameof(IView.Width)] = MapWidth,
-            [nameof(IView.Height)] = MapHeight,
-            [nameof(IView.MinimumWidth)] = MapMinimumWidth,
-            [nameof(IView.MinimumHeight)] = MapMinimumHeight,
-            [nameof(IView.MaximumWidth)] = MapMaximumWidth,
-            [nameof(IView.MaximumHeight)] = MapMaximumHeight,
-            [nameof(IView.IsEnabled)] = MapIsEnabled,
-            [nameof(IView.Opacity)] = MapOpacity,
-            [nameof(IView.Visibility)] = MapVisibility,
-            [nameof(IView.InputTransparent)] = MapInputTransparent,
-            [nameof(IToolTipElement.ToolTip)] = MapToolTip,
-            [nameof(IView.TranslationX)] = MapTransform,
-            [nameof(IView.TranslationY)] = MapTransform,
-            [nameof(IView.Scale)] = MapTransform,
-            [nameof(IView.ScaleX)] = MapTransform,
-            [nameof(IView.ScaleY)] = MapTransform,
-            [nameof(IView.Rotation)] = MapTransform,
-            [nameof(IView.RotationX)] = MapTransform,
-            [nameof(IView.RotationY)] = MapTransform,
             [nameof(ILabel.Text)] = MapText,
             [nameof(ITextStyle.TextColor)] = MapTextColor,
             [nameof(ITextStyle.Font)] = MapFont,
