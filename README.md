@@ -9,6 +9,8 @@
 | [![NuGet Package](https://img.shields.io/nuget/v/Ooui.Forms.svg)](https://www.nuget.org/packages/Ooui.Forms) | [Ooui.Forms](https://www.nuget.org/packages/Ooui.Forms) | Xamarin.Forms backend using Ooui ([Status](Documentation/OouiFormsStatus.md)) |
 | `Ooui.Maui` (experimental, source only) | [Ooui.Maui](Ooui.Maui/Ooui.Maui.csproj) | Experimental .NET MAUI 11 browser backend |
 | `BrowserWasm` (sample, source only) | [BrowserWasm](PlatformSamples/BrowserWasm/BrowserWasm.csproj) | Runs Ooui completely in the browser on `browser-wasm` (replaces the retired `Ooui.Wasm`) |
+| `BrowserWasmMaui` (sample, source only) | [BrowserWasmMaui](PlatformSamples/BrowserWasmMaui/BrowserWasmMaui.csproj) | Runs `Ooui.Maui` – a real MAUI 11 app – inside the browser on `browser-wasm` |
+| `AspNetCoreMauiWasm` (sample, source only) | [AspNetCoreMauiWasm](PlatformSamples/AspNetCoreMauiWasm/AspNetCoreMauiWasm.csproj) | Serves one MAUI page twice: rendered by Kestrel at `/` and as a WebAssembly bundle at `/wasm` |
 
 Ooui (pronounced *weee!*) is a small cross-platform UI library for .NET that uses web technologies.
 
@@ -59,6 +61,20 @@ python -m http.server 8095 --bind 127.0.0.1
 Open <http://localhost:8095/>. Publish output cannot be opened via `file://`, because the runtime loads its assemblies with `fetch`.
 
 The build generates `wasm-boot.json` next to the runtime assets: .NET 11 no longer emits a boot manifest for plain Wasm apps, so the resource list (`dotnet.native.wasm`, `dotnet.native.js`, `dotnet.runtime.js`, ICU data and the application assemblies) is written from the publish output and handed to `dotnet.withConfig` in `wwwroot/main.js`. The `PruneWasmPublishOutput` target drops the native build inputs (`.a`, `.c`, `.h`, maps and symbols) that the runtime pack copies to `publish`.
+
+### MAUI in the browser
+
+`PlatformSamples/BrowserWasmMaui` runs a real MAUI 11 application inside the tab: the same `MauiApp`, pages and handlers that the server samples use, executing on `browser-wasm` with the DOM as the platform view.
+
+```bash
+dotnet publish PlatformSamples/BrowserWasmMaui/BrowserWasmMaui.csproj -c Release
+cd PlatformSamples/BrowserWasmMaui/bin/Release/net11.0/browser-wasm/publish
+python -m http.server 8097 --bind 127.0.0.1
+```
+
+Startup mirrors the server version. `Main` builds the app, calls `app.Publish("/")` and returns; there is no `Thread.Sleep(Timeout.Infinite)`, because the .NET runtime keeps running after `runMain` resolves and the page drives it through `globalThis.oouiWasm`.
+
+The browser runtime is single-threaded, so `OouiDispatcher` checks `RuntimeFeature.IsMultithreadingSupported` and executes work inline instead of starting a dispatcher thread. On a server nothing changes; under Wasm this check is the difference between a running page and `PlatformNotSupportedException`.
 
 
 ## .NET MAUI 11 (experimental)
@@ -229,6 +245,31 @@ Because the state is per browser, deep links, reloads and the back button all sh
 
 Two limits are worth knowing: the store lives in the memory of one process, so scaling out needs sticky sessions or a distributed implementation of the store, and disposed values are only released by the idle sweep (every `SweepInterval`, default one minute). Values that arrive from the server are also part of the initial HTML (`<input value="…">`, textarea content), so a reload never flashes an empty form while the web socket connects.
 
+### One host, both rendering paths
+
+`PlatformSamples/AspNetCoreMauiWasm` answers what the two previous samples only hint at: the *same* MAUI page is served by Kestrel and shipped to the browser as WebAssembly, so a visitor can switch between the two renderings of one class.
+
+| Route | Rendered by |
+| --- | --- |
+| `/` | Kestrel: `page.ToOouiElement (mauiContext)` inside an `ElementResult`, updated over `/ooui.ws` |
+| `/wasm/` | WebAssembly: `BrowserWasmMaui`'s published bundle, driving the DOM in the tab |
+
+The page itself lives in `PlatformSamples/MauiDemoUi` — a plain `net11.0`/`UseMaui` library with no Ooui and no host reference. Both hosts project-reference it and only pass a `renderMode` string, which the page shows in its badge. Everything else is identical, which is the point: no HTML, no JavaScript, no per-host view code.
+
+```bash
+# the bundle first, because no build of the host can produce it (it needs a Wasm runtime identifier)
+dotnet publish PlatformSamples/BrowserWasmMaui/BrowserWasmMaui.csproj -c Release
+dotnet run --project PlatformSamples/AspNetCoreMauiWasm/AspNetCoreMauiWasm.csproj   # http://localhost:8098
+```
+
+The host serves the folder through a `PhysicalFileProvider` (`UseDefaultFiles` + `UseStaticFiles` with `RequestPath = "/wasm"`), so nothing is copied or duplicated. `WasmBundle.Find` looks for it in this order: the `Ooui:WasmBundle` configuration value or the `OOUI_WASM_BUNDLE` environment variable, then `wwwroot/wasm` and `wasm` next to the host, then the publish output of `BrowserWasmMaui` — searching the content root and the assembly folder and their parents, because `dotnet run --project` and a published host disagree about the working directory. Without a bundle the process still starts and `/wasm` answers with a short page that contains the publish command.
+
+Three details are easy to get wrong when serving a Wasm bundle from Kestrel:
+
+- `.dll` and `.dat` have no media type, so the static file middleware would answer `404` for them. The sample registers them as `application/octet-stream` on a `FileExtensionContentTypeProvider`.
+- `/wasm` must redirect to `/wasm/` explicitly: the bundle references its files relatively. Do that in middleware rather than in a `MapGet ("/wasm", …)` endpoint, because routing also matches the trailing-slash URL and would redirect it to itself.
+- Both paths share `UI.HeadHtml`, so the same dark card style applies whether the page came from Kestrel or from the tab.
+
 
 ## Example App
 
@@ -300,9 +341,15 @@ Ooui has been broken up into several packages to increase the variety of ways th
 <td>&check;</td><td></td><td></td><td>&check;</td><td><a href="PlatformSamples/BrowserWasm/BrowserWasm.csproj">Web DOM in the browser (BrowserWasm)</a></td>
 </tr>
 
+<tr>
+<td>&check;</td><td></td><td>&check; (`Ooui.Maui`)</td><td>&check;</td><td><a href="PlatformSamples/BrowserWasmMaui/BrowserWasmMaui.csproj">MAUI 11 in the browser (BrowserWasmMaui)</a></td>
+</tr>
+
 </table>
 
 In addition to the combinations above, the experimental `Ooui.Maui` project can be combined with `Ooui.AspNetCore`: register the Ooui handlers with `UseMauiApp<App>().UseOoui()`, expose the MAUI services as an `IMauiContext`, and return `new ElementResult (page.ToOouiElement (mauiContext))` from a controller. `PlatformSamples/AspNetCoreMaui` is a runnable example of exactly that combination.
+
+That is one of the two rows that carry `Ooui.Maui` — and they can be mixed. `PlatformSamples/AspNetCoreMauiWasm` serves the page from `PlatformSamples/MauiDemoUi` twice: Kestrel renders it at `/` (as above) and the same page compiled to `browser-wasm` is served as a static bundle at `/wasm/` (as in `BrowserWasmMaui`), so one host demonstrates both.
 
 
 ## How it works

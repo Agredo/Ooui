@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ooui &middot; MAUI in WebAssembly</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0e1826;
+      --panel: #172238;
+      --panel-edge: #253350;
+      --text: #eef2f9;
+      --muted: #8492aa;
+      --accent: #6854d9;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100%;
+    }
+
+    body {
+      background: radial-gradient(1200px 600px at 15% -10%, #1d2b47 0%, var(--bg) 55%);
+      color: var(--text);
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      line-height: 1.55;
+      padding: 40px 24px 64px;
+    }
+
+    /* The MAUI page is rendered straight into the page body. */
+    body > div {
+      max-width: 760px;
+      margin: 0 auto;
+      background: var(--panel);
+      border: 1px solid var(--panel-edge);
+      border-radius: 18px;
+      overflow: hidden;
+    }
+
+    #loading {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg);
+      color: var(--muted);
+      font-size: 14px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      z-index: 10;
+    }
+
+    #loading[hidden] {
+      display: none;
+    }
+
+    button {
+      border: 1px solid transparent;
+      border-radius: 10px;
+      padding: 10px 18px;
+      font: inherit;
+      font-weight: 600;
+      background: var(--accent);
+      color: #fff;
+      cursor: pointer;
+    }
+
+    button:hover {
+      filter: brightness(1.12);
+    }
+
+    input[type="text"],
+    input:not([type]),
+    textarea {
+      width: 100%;
+      padding: 11px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--panel-edge);
+      background: #101a2b;
+      color: var(--text);
+      font: inherit;
+      outline: none;
+    }
+
+    input[type="text"]:focus {
+      border-color: var(--accent);
+    }
+
+    progress {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+
+    input[type="range"] {
+      accent-color: var(--accent);
+    }
+  </style>
+</head>
+
+<body>
+  <div id="loading">Starting .NET and MAUI</div>
+  <script src="ooui-client.js"></script>
+  <script type="module" src="main.js"></script>
+</body>
+
+</html>

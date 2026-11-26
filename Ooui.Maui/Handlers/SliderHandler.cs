@@ -61,6 +61,8 @@ public class SliderHandler : OouiViewHandler<ISlider, Input>, ISliderHandler
     {
         handler.PlatformView.Minimum = slider.Minimum;
         handler.PlatformView.Maximum = slider.Maximum;
+        // A range input with the default step of 1 snaps every value to whole numbers.
+        handler.PlatformView.Step = 0.01;
     }
 
     public static void MapValue(SliderHandler handler, ISlider slider) =>

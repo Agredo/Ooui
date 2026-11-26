@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- One MAUI page, shared by the Kestrel host (AspNetCoreMauiWasm) and the WebAssembly sample
+       (BrowserWasmMaui). Plain net11.0 works for both: the runtime identifier decides the platform. -->
+  <PropertyGroup>
+    <TargetFramework>net11.0</TargetFramework>
+    <UseMaui>true</UseMaui>
+    <SkipValidateMauiImplicitPackageReferences>true</SkipValidateMauiImplicitPackageReferences>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Maui.Controls" Version="11.0.0" />
+  </ItemGroup>
+
+</Project>
