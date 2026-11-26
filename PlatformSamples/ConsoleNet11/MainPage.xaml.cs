@@ -39,6 +39,9 @@ public partial class MainPage : ContentPage
 
     void OnResetClicked (object? sender, EventArgs e) => Reset ();
 
+    void OnOpenDetailsClicked (object? sender, EventArgs e) =>
+        _ = Navigation.PushAsync (new Pages.DetailsPage (model.ProjectName));
+
     void OnProjectCompleted (object? sender, EventArgs e) => Save ();
 
     void OnSearchTextChanged (object? sender, TextChangedEventArgs e) => Filter ();

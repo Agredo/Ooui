@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="ConsoleNet11.Pages.DetailsPage"
+             Title="Launch details"
+             BackgroundColor="#f5f7fc">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <Color x:Key="Ink">#172238</Color>
+            <Color x:Key="Muted">#6f7990</Color>
+            <Color x:Key="Accent">#6854d9</Color>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <VerticalStackLayout Padding="24" Spacing="20">
+        <Label Text="Launch details"
+               AutomationId="details-heading"
+               FontSize="32"
+               FontAttributes="Bold"
+               TextColor="{StaticResource Ink}" />
+
+        <Label Text="This page was pushed onto the navigation stack on the server and rendered into the same browser session."
+               FontSize="16"
+               LineHeight="1.35"
+               TextColor="{StaticResource Muted}" />
+
+        <Label Text="PROJECT"
+               FontSize="12"
+               FontAttributes="Bold"
+               CharacterSpacing="1"
+               TextColor="{StaticResource Muted}" />
+        <Label x:Name="ProjectLabel"
+               AutomationId="details-project"
+               FontSize="24"
+               FontAttributes="Bold"
+               TextColor="{StaticResource Accent}" />
+
+        <Button AutomationId="details-back"
+                Text="Back to the overview"
+                TextColor="White"
+                BackgroundColor="{StaticResource Accent}"
+                CornerRadius="10"
+                FontAttributes="Bold"
+                Clicked="OnBackClicked" />
+    </VerticalStackLayout>
+
+</ContentPage>

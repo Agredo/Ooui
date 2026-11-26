@@ -53,6 +53,8 @@ public static class OouiMauiExtensions
             handlers.AddHandler<ContentPage, ContentViewHandler>();
             handlers.AddHandler<MauiContentView, ContentViewHandler>();
             handlers.AddHandler<IContentView, ContentViewHandler>();
+            handlers.AddHandler<NavigationPage, NavigationPageHandler>();
+            handlers.AddHandler<TabbedPage, TabbedPageHandler>();
         });
         return builder;
     }

@@ -65,13 +65,20 @@ function saveSize (s) {
     setCookie ("oouiWindowHeight", s.height, 7);
 }
 
+function navigationState () {
+    return {
+        href: window.location.href,
+        hash: window.location.hash
+    };
+}
+
 function initializeNavigation() {
     monitorHashChanged();
     const em = {
         m: "event",
         id: "window",
         k: "hashchange",
-        v: window.location
+        v: navigationState ()
     };
     saveSize(em.v);
     const ems = JSON.stringify(em);
@@ -179,7 +186,7 @@ function monitorHashChanged() {
             m: "event",
             id: "window",
             k: "hashchange",
-            v: window.location
+            v: navigationState ()
         };
         saveSize(em.v);
         const ems = JSON.stringify(em);

@@ -263,6 +263,19 @@ namespace Ooui
             Send (message);
         }
 
+        /// <summary>
+        /// Events of the browser window (such as <c>hashchange</c>) are not addressed to
+        /// an element, so they are routed to the window of this element's document.
+        /// </summary>
+        protected override bool TriggerEventFromMessage (Message message)
+        {
+            if (message != null && message.TargetId == "window" && document != null) {
+                document.Window.Receive (message);
+                return true;
+            }
+            return base.TriggerEventFromMessage (message);
+        }
+
         protected virtual bool HtmlNeedsFullEndElement => false;
 
 #if !NO_XML

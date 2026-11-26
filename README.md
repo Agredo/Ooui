@@ -95,7 +95,7 @@ app.Publish();
 Thread.Sleep(Timeout.Infinite);
 ```
 
-Run the included interactive showcase and open <http://localhost:8080/>. The whole page is a single MAUI `ContentPage` in [`PlatformSamples/ConsoleNet11/MainPage.xaml`](PlatformSamples/ConsoleNet11/MainPage.xaml) — layouts, styles, bindings and the `<local:PercentageConverter>` resource are XAML, the code-behind only holds the click handlers. It demonstrates data binding, validation and focus, form editing and reset, save/busy feedback, activity filtering, scrolling, responsive cards, and independent browser sessions:
+Run the included interactive showcase and open <http://localhost:8080/>. The main screen is a MAUI `ContentPage` in [`PlatformSamples/ConsoleNet11/MainPage.xaml`](PlatformSamples/ConsoleNet11/MainPage.xaml) hosted in a `NavigationPage` — layouts, styles, bindings and the `<local:PercentageConverter>` resource are XAML, the code-behind only holds the click handlers. It demonstrates data binding, validation and focus, form editing and reset, save/busy feedback, activity filtering, scrolling, responsive cards, and independent browser sessions. The "Open details" button pushes [`Pages/DetailsPage.xaml`](PlatformSamples/ConsoleNet11/Pages/DetailsPage.xaml), which keeps the browser history in sync with the server-side navigation stack.
 
 ```bash
 dotnet run --project PlatformSamples/ConsoleNet11/ConsoleNet11.csproj
@@ -108,15 +108,18 @@ Each WebSocket connection creates its own window and view hierarchy. Closing the
 | Area | Controls and behavior |
 | ---- | --------------------- |
 | Pages and layout | `ContentPage`, `ContentView`, vertical/horizontal stacks, `Grid` (automatic and explicit placement), `FlexLayout`, `ScrollView`, `Border`, `BoxView` |
+| Navigation | `NavigationPage` with a back button and title bar (`PushAsync`, `PopAsync`, `PopToRootAsync`, `BarBackgroundColor`, `BarTextColor`, `HasNavigationBar`), `TabbedPage` with a tab bar and switchable pages |
 | Forms | `Entry`, `Editor`, `CheckBox`, `RadioButton`, `Switch`, `Slider`, `Stepper`, `Picker`, `DatePicker`, `TimePicker`, `SearchBar` |
 | Display and feedback | `Label`, `Button`, `ImageButton`, `Image`, `ProgressBar`, `ActivityIndicator`, focus requests |
 | Collections | `CollectionView` with `ItemsSource` (including `INotifyCollectionChanged`), `ItemTemplate`, `EmptyView`, single/multiple selection, vertical/horizontal/grid `ItemsLayout` with `ItemSpacing` |
 
 Common text, font, color, sizing, padding, transformation, interaction, and enabled/visibility properties are mapped by the browser handlers. Browser edits update MAUI properties and bindings, while server-side changes update live DOM form values.
 
+A `NavigationPage` keeps the browser history in sync with its server-side navigation stack. Pushing a page writes a hash built from the page names (`#/main/details`) through `window.location.hash`, so the browser back button pops the page; in-app back buttons and `PopAsync` rewrite the hash without adding a history entry. The stack itself always lives on the server — the hash is a mirror, not the source of truth, and deep links to a page that is not on the current stack are ignored.
+
 ### Limitations
 
-This remains an experimental browser backend, **not a complete MAUI web platform**. `Shell`, navigation, and accessibility/localization infrastructure are not implemented. Layout uses browser CSS rather than complete MAUI text measurement and native layout semantics. `CollectionView` renders every item at once (no virtualization) and ignores grouping, headers and footers, scroll events, and `RefreshView`. `Image` currently supports URL and file-name sources, `DatePicker`/`TimePicker` do not apply custom `Format` values, and `Stepper` is represented by a number input. The built-in server hosts application logic and per-session state on the server; it is not a client-side MAUI runtime. Production deployment, authentication, reconnect behavior, and scale-out require additional application design and validation.
+This remains an experimental browser backend, **not a complete MAUI web platform**. `Shell` and accessibility/localization infrastructure are not implemented. Navigation renders a single `NavigationPage` or `TabbedPage` per window: the browser hash mirrors the navigation stack, but it is not a deep-link source, so bookmarks and reloads always start at the root page, and tab bars show page titles only (no icons). Layout uses browser CSS rather than complete MAUI text measurement and native layout semantics. `CollectionView` renders every item at once (no virtualization) and ignores grouping, headers and footers, scroll events, and `RefreshView`. `Image` currently supports URL and file-name sources, `DatePicker`/`TimePicker` do not apply custom `Format` values, and `Stepper` is represented by a number input. The built-in server hosts application logic and per-session state on the server; it is not a client-side MAUI runtime. Production deployment, authentication, reconnect behavior, and scale-out require additional application design and validation.
 
 Run the focused handler and session tests with:
 
@@ -206,7 +209,7 @@ public IActionResult Index () =>
     new ElementResult (new Pages.OverviewPage (BrowserState, HttpContext.GetOouiUserSession ()).ToOouiElement (mauiContext), title: "Ooui + MAUI");
 ```
 
-Registering the context **as `IMauiContext`** is what lets the ASP.NET Core container resolve it in the controller. Navigation pages, Shell, `ListView`, `WebView` and gestures are not supported yet, so the sample sticks to plain `ContentPage` roots with `CollectionView` for lists.
+Registering the context **as `IMauiContext`** is what lets the ASP.NET Core container resolve it in the controller. `Shell`, `FlyoutPage`, `ListView`, `WebView` and gestures are not supported yet, and this per-request style of serving a page does not use the interactive navigation handlers, so the sample sticks to plain `ContentPage` roots with `CollectionView` for lists.
 
 ### Multiple pages and session state
 

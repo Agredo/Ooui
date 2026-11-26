@@ -251,6 +251,10 @@ namespace Ooui
                         args.ClientHeight = (double)o.GetValue("clientHeight");
                         args.ClientWidth = (double)o.GetValue("clientWidth");
                     }
+                    if (o["hash"] != null && o["hash"].Type == Newtonsoft.Json.Linq.JTokenType.String)
+                    {
+                        args.Value = (string)o["hash"];
+                    }
                 }
                 foreach (var h in handlers) {
                     h.Invoke (this, args);

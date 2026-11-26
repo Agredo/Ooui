@@ -7,5 +7,5 @@ namespace ConsoleNet11;
 public class App : Application
 {
     protected override Microsoft.Maui.Controls.Window CreateWindow(IActivationState? activationState) =>
-        new(new MainPage());
+        new(new NavigationPage(new MainPage()));
 }

@@ -258,6 +258,10 @@
                                     Text="Reset"
                                     Style="{StaticResource Secondary}"
                                     Clicked="OnResetClicked" />
+                            <Button AutomationId="open-details"
+                                    Text="Open details"
+                                    Style="{StaticResource Secondary}"
+                                    Clicked="OnOpenDetailsClicked" />
                             <ActivityIndicator x:Name="Busy"
                                                IsRunning="False"
                                                Color="{StaticResource Accent}"
