@@ -138,6 +138,8 @@ public class NavigationPageHandler : OouiViewHandler<IStackNavigationView, Div>,
         if (topElement is not null && !host.Children.Contains(topElement))
             host.AppendChild(topElement);
         RemoveUnusedPages(newStack);
+        if (browserWindow is not null)
+            browserWindow.Call("scrollTo", 0, 0);
         UpdateBar(top as Page);
         SyncUrl(newStack, newStack.Count > previousCount);
     }

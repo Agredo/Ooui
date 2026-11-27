@@ -113,10 +113,59 @@
                 <RoundRectangle CornerRadius="18" />
             </Border.StrokeShape>
             <VerticalStackLayout Spacing="12">
+                <Label Style="{StaticResource CardHeading}" Text="Brushes and shadows" />
+                <Label Style="{StaticResource Small}"
+                       Text="Background accepts any MAUI brush: linear and radial gradients become CSS gradients, and Shadow becomes box-shadow." />
+
+                <HorizontalStackLayout Spacing="16">
+                    <Border AutomationId="gradient-tile"
+                            WidthRequest="180"
+                            HeightRequest="120"
+                            StrokeThickness="0"
+                            Padding="16">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                <GradientStop Color="#6854d9" Offset="0" />
+                                <GradientStop Color="#3ddc97" Offset="1" />
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="18" />
+                        </Border.StrokeShape>
+                        <Border.Shadow>
+                            <Shadow Brush="#6854d9" Opacity="0.45" Radius="24" Offset="0,10" />
+                        </Border.Shadow>
+                        <Label Text="Glow"
+                               TextColor="White"
+                               FontSize="26"
+                               FontAttributes="Bold" />
+                    </Border>
+                    <VerticalStackLayout Spacing="6">
+                        <Label Style="{StaticResource Body}" Text="A radial BoxView" />
+                        <BoxView AutomationId="radial-box" HeightRequest="18" CornerRadius="9">
+                            <BoxView.Fill>
+                                <RadialGradientBrush Center="0.2,0.5" Radius="0.9">
+                                    <GradientStop Color="#3ddc97" Offset="0" />
+                                    <GradientStop Color="#17213f" Offset="1" />
+                                </RadialGradientBrush>
+                            </BoxView.Fill>
+                        </BoxView>
+                        <Label Style="{StaticResource Small}"
+                               Text="Gradient stops, their offsets and the gradient direction all come from XAML." />
+                    </VerticalStackLayout>
+                </HorizontalStackLayout>
+            </VerticalStackLayout>
+        </Border>
+
+        <Border Style="{StaticResource Card}">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="18" />
+            </Border.StrokeShape>
+            <VerticalStackLayout Spacing="12">
                 <Label Style="{StaticResource CardHeading}" Text="Not supported yet" />
                 <Label Style="{StaticResource Small}" Text="Keep these out of a production plan for now." />
                 <Label Style="{StaticResource Small}"
-                       Text="NavigationPage, Shell and TabbedPage, ListView, WebView, graphics, gestures and animations." />
+                       Text="Shell, WebView, graphics, gestures and animations." />
             </VerticalStackLayout>
         </Border>
     </VerticalStackLayout>

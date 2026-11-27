@@ -158,6 +158,8 @@ public class GridHandler : LayoutHandler
         element.Style["grid-row-end"] = $"span {grid.GetRowSpan(view)}";
         element.Style["grid-column-start"] = grid.GetColumn(view) + 1;
         element.Style["grid-column-end"] = $"span {grid.GetColumnSpan(view)}";
+        element.Style["justify-self"] = OouiStyle.ToCss(view.HorizontalLayoutAlignment);
+        element.Style["align-self"] = OouiStyle.ToCss(view.VerticalLayoutAlignment);
     }
 
     protected override void OnChildPropertyChanged(IView view, string propertyName)
@@ -171,7 +173,9 @@ public class GridHandler : LayoutHandler
         {
             UpdateChild(view);
             if (VirtualView is IGridLayout grid) UpdateAutomaticPlacement(grid);
+            return;
         }
+        base.OnChildPropertyChanged(view, propertyName);
     }
 
     public static void MapGrid(GridHandler handler, ILayout layout) => handler.UpdateLayout();

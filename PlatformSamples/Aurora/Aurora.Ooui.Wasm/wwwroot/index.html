@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#173f35" />
+  <meta name="description" content="Aurora — thoughtful journeys, beautifully made with .NET MAUI and Ooui." />
+  <title>Aurora · Find your kind of away</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="aurora.css" />
+</head>
+<body>
+  <main id="ooui-body" aria-label="Aurora travel journal"></main>
+  <div id="loading" role="status" aria-live="polite">
+    <span class="loading-mark">✳</span>
+    <span class="loading-brand">aurora</span>
+    <span class="loading-caption">A little wonder is on its way.</span>
+    <span class="loading-line"></span>
+  </div>
+  <script>globalThis.auroraHost = { getDocumentBaseUri: () => document.baseURI };</script>
+  <script src="ooui-client.js"></script>
+  <script type="module" src="main.js"></script>
+</body>
+</html>

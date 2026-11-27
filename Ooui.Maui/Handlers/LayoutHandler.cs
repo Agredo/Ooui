@@ -28,7 +28,12 @@ public class LayoutHandler : OouiViewHandler<ILayout, Div>, ILayoutHandler
 
     protected LayoutHandler(IPropertyMapper<ILayout, LayoutHandler> mapper) : base(mapper, CommandMapper) { }
 
-    protected virtual void OnChildPropertyChanged(IView view, string propertyName) { }
+    protected virtual void OnChildPropertyChanged(IView view, string propertyName)
+    {
+        if (propertyName is "HorizontalOptions" or "VerticalOptions"
+            or nameof(IView.HorizontalLayoutAlignment) or nameof(IView.VerticalLayoutAlignment))
+            UpdateChild(view);
+    }
 
     ILayout ILayoutHandler.VirtualView => VirtualView;
     object ILayoutHandler.PlatformView => PlatformView;
@@ -98,7 +103,12 @@ public class LayoutHandler : OouiViewHandler<ILayout, Div>, ILayoutHandler
             element.Style.ZIndex = view.ZIndex;
     }
 
-    protected virtual void UpdateChild(IView view) { }
+    protected virtual void UpdateChild(IView view)
+    {
+        if (VirtualView is not ILayout layout || view.Handler is not IElementHandler { PlatformView: Element element }) return;
+        var crossAxis = layout is HorizontalStackLayout ? view.VerticalLayoutAlignment : view.HorizontalLayoutAlignment;
+        element.Style["align-self"] = OouiStyle.ToCss(crossAxis);
+    }
 
     readonly Dictionary<IView, System.ComponentModel.PropertyChangedEventHandler> childPropertyHandlers = new();
 
@@ -118,6 +128,7 @@ public class LayoutHandler : OouiViewHandler<ILayout, Div>, ILayoutHandler
         OouiStyle.SetDimension(style, "row-gap", spacing ?? double.NaN);
         OouiStyle.SetDimension(style, "column-gap", spacing ?? double.NaN);
         OouiStyle.SetThickness(style, VirtualView.Padding);
+        foreach (var child in VirtualView) UpdateChild(child);
     }
 
     public static void MapPadding(LayoutHandler handler, ILayout layout) => handler.UpdateLayout();

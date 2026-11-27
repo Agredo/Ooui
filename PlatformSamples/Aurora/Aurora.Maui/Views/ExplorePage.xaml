@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:views="clr-namespace=Aurora.Maui.Views;assembly=Aurora.Maui"
+             xmlns:maui="clr-namespace=Aurora.Maui"
+             xmlns:vm="clr-namespace=Aurora.ViewModels;assembly=Aurora.ViewModels"
+             x:Class="Aurora.Maui.Views.ExplorePage"
+             x:Name="Page"
+             x:DataType="vm:ExploreViewModel"
+             Style="{StaticResource Page}"
+             Title="Aurora — Find your kind of away">
+  <ScrollView AutomationId="explore-scroll">
+    <VerticalStackLayout Spacing="28" Padding="0,0,0,48">
+      <Border BackgroundColor="{StaticResource Cream}" Padding="0,26,0,0">
+        <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="16" AutomationId="explore-header">
+          <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
+            <Label Text="✳" FontSize="30" TextColor="{StaticResource Clay}" VerticalOptions="Center" />
+            <Label Text="aurora" Style="{StaticResource Brand}" VerticalOptions="Center" />
+          </HorizontalStackLayout>
+          <Button Grid.Column="1" Style="{StaticResource LightButton}" Text="My saved places" Command="{Binding OpenFavoritesCommand}" AutomationId="saved-link" />
+          <Button Grid.Column="2" Style="{StaticResource PrimaryButton}" Text="Explore ↗" Command="{Binding ClearFiltersCommand}" HeightRequest="44" />
+        </Grid>
+      </Border>
+
+      <Border Style="{StaticResource Card}" BackgroundColor="{StaticResource DeepForest}" StrokeThickness="0" Padding="0" AutomationId="hero">
+        <Grid HeightRequest="450" IsClippedToBounds="True" RowDefinitions="*" ColumnDefinitions="*" AutomationId="hero-media">
+          <Image Grid.Row="0" Grid.Column="0" Source="{Binding HeroImage, Converter={StaticResource RelativeImageSource}}" Aspect="AspectFill" HeightRequest="450" AutomationId="hero-image" />
+          <BoxView Grid.Row="0" Grid.Column="0" HeightRequest="450" Opacity="1">
+            <BoxView.Background>
+              <LinearGradientBrush StartPoint="0,0" EndPoint="1,0.6">
+                <GradientStop Color="#F00E2D27" Offset="0" />
+                <GradientStop Color="#B00E2D27" Offset="0.46" />
+                <GradientStop Color="#100E2D27" Offset="1" />
+              </LinearGradientBrush>
+            </BoxView.Background>
+          </BoxView>
+          <VerticalStackLayout Grid.Row="0" Grid.Column="0" Padding="38,42" Spacing="16" AutomationId="hero-copy">
+            <Label Text="THE ART OF GETTING AWAY" TextColor="{StaticResource Sage}" Style="{StaticResource Eyebrow}" />
+            <Label Text="Go somewhere&#x0a;that moves you." Style="{StaticResource HeroTitle}" AutomationId="hero-title" />
+            <Label Text="Extraordinary places. Thoughtful journeys.&#x0a;More room for the moments that matter." TextColor="#E6EEE8" FontSize="16" LineHeight="1.5" />
+            <Button Text="Find your next story  ↗" BackgroundColor="{StaticResource Cream}" TextColor="{StaticResource Forest}" Style="{StaticResource PrimaryButton}" Command="{Binding ExploreCommand}" AutomationId="explore-cta" />
+          </VerticalStackLayout>
+          <Border Grid.Row="0" Grid.Column="0" Padding="13,8" BackgroundColor="#DFFFFFFF" StrokeThickness="0" HorizontalOptions="End" VerticalOptions="End" Margin="0,0,24,22">
+            <Border.StrokeShape><RoundRectangle CornerRadius="18" /></Border.StrokeShape>
+            <Label Text="✳  Small journeys. Big feelings." FontSize="11" TextColor="{StaticResource Forest}" />
+          </Border>
+        </Grid>
+      </Border>
+
+      <VerticalStackLayout Spacing="20" AutomationId="discovery">
+        <HorizontalStackLayout Spacing="10">
+          <Label Text="01" Style="{StaticResource Eyebrow}" VerticalOptions="Center" />
+          <Label Text="A WORLD WORTH WANDERING" Style="{StaticResource Eyebrow}" VerticalOptions="Center" />
+        </HorizontalStackLayout>
+        <Label Text="What are you in the mood for?" Style="{StaticResource Title}" />
+        <Label Text="Not just a destination. A feeling you want to take home." Style="{StaticResource Body}" />
+        <CollectionView ItemsSource="{Binding Categories}" SelectionMode="None" HeightRequest="56" AutomationId="categories">
+          <CollectionView.ItemsLayout><LinearItemsLayout Orientation="Horizontal" ItemSpacing="8" /></CollectionView.ItemsLayout>
+          <CollectionView.ItemTemplate>
+            <DataTemplate x:DataType="x:String">
+              <Button Text="{Binding .}" Style="{StaticResource LightButton}" Command="{Binding BindingContext.SelectCategoryCommand, Source={x:Reference Page}}" CommandParameter="{Binding .}" HeightRequest="38" CornerRadius="19" />
+            </DataTemplate>
+          </CollectionView.ItemTemplate>
+        </CollectionView>
+        <Border BackgroundColor="{StaticResource Paper}" Stroke="{StaticResource Line}" StrokeThickness="1" Padding="18,4" AutomationId="search-panel">
+          <Border.StrokeShape><RoundRectangle CornerRadius="26" /></Border.StrokeShape>
+          <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+            <Label Text="⌕" FontSize="25" TextColor="{StaticResource Muted}" VerticalOptions="Center" />
+            <SearchBar Grid.Column="1" Placeholder="Where do you want to feel alive?" Text="{Binding Query}" FontSize="13" TextColor="{StaticResource Ink}" HeightRequest="46" AutomationId="search-input" />
+            <Button Grid.Column="2" Text="{Binding FilterButtonText}" Style="{StaticResource LightButton}" Command="{Binding ToggleFavoritesCommand}" AutomationId="filter-saved" />
+          </Grid>
+        </Border>
+      </VerticalStackLayout>
+
+      <VerticalStackLayout Spacing="18" AutomationId="journeys">
+        <Grid ColumnDefinitions="*,Auto">
+          <VerticalStackLayout Spacing="4">
+            <Label Text="{Binding ResultsTitle}" Style="{StaticResource Title}" FontSize="29" />
+            <Label Text="{Binding ResultSummary}" Style="{StaticResource Small}" />
+          </VerticalStackLayout>
+          <Label Grid.Column="1" Text="Handpicked, never hurried  ↗" Style="{StaticResource Small}" VerticalOptions="End" />
+        </Grid>
+        <CollectionView ItemsSource="{Binding Destinations}" SelectionMode="None" AutomationId="destination-list">
+          <CollectionView.ItemsLayout><GridItemsLayout Orientation="Vertical" Span="2" HorizontalItemSpacing="24" VerticalItemSpacing="26" /></CollectionView.ItemsLayout>
+          <CollectionView.ItemTemplate><StaticResourceExtension Key="DestinationCardTemplate" /></CollectionView.ItemTemplate>
+          <CollectionView.EmptyView>
+            <Border Style="{StaticResource Card}" Padding="42,32">
+              <VerticalStackLayout Spacing="12">
+                <Label Text="✳" FontSize="38" TextColor="{StaticResource Clay}" />
+                <Label Text="{Binding EmptyTitle}" Style="{StaticResource Title}" FontSize="26" />
+                <Label Text="{Binding EmptyMessage}" Style="{StaticResource Body}" />
+                <Button Text="See all journeys" Style="{StaticResource PrimaryButton}" Command="{Binding ClearFiltersCommand}" AutomationId="clear-filters" />
+              </VerticalStackLayout>
+            </Border>
+          </CollectionView.EmptyView>
+        </CollectionView>
+      </VerticalStackLayout>
+
+      <Border BackgroundColor="{StaticResource Peach}" StrokeThickness="0" Padding="30" AutomationId="slow-travel">
+        <Border.StrokeShape><RoundRectangle CornerRadius="24" /></Border.StrokeShape>
+        <Grid ColumnDefinitions="60,*" ColumnSpacing="18">
+          <Label Text="☼" FontSize="42" TextColor="{StaticResource Clay}" />
+          <VerticalStackLayout Grid.Column="1" Spacing="8">
+            <Label Text="LESS RUSH. MORE WONDER." Style="{StaticResource Eyebrow}" />
+            <Label Text="Leave a little room for the unexpected." FontFamily="Georgia" FontSize="25" TextColor="{StaticResource Forest}" />
+            <Label Text="Our journeys are starting points, not checklists. Take the scenic route, stay for another coffee, make it yours." Style="{StaticResource Body}" TextColor="{StaticResource Forest}" />
+          </VerticalStackLayout>
+        </Grid>
+      </Border>
+
+      <VerticalStackLayout Spacing="12" Padding="0,18,0,0">
+        <HorizontalStackLayout Spacing="10"><Label Text="✳" FontSize="25" TextColor="{StaticResource Clay}" /><Label Text="aurora" Style="{StaticResource Brand}" FontSize="24" /></HorizontalStackLayout>
+        <Label Text="Go gently. Come back different." FontFamily="Georgia" FontSize="20" TextColor="{StaticResource Forest}" />
+        <Label Text="An independent travel concept · Crafted with .NET MAUI &amp; Ooui" Style="{StaticResource Small}" />
+      </VerticalStackLayout>
+    </VerticalStackLayout>
+  </ScrollView>
+</ContentPage>

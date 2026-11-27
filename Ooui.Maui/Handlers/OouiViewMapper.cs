@@ -21,12 +21,14 @@ public static class OouiViewMapper
         {
             [nameof(IView.AutomationId)] = MapAutomationId,
             [nameof(IView.Background)] = MapBackground,
+            [nameof(IView.Shadow)] = MapShadow,
             [nameof(IView.Width)] = MapWidth,
             [nameof(IView.Height)] = MapHeight,
             [nameof(IView.MinimumWidth)] = MapMinimumWidth,
             [nameof(IView.MinimumHeight)] = MapMinimumHeight,
             [nameof(IView.MaximumWidth)] = MapMaximumWidth,
             [nameof(IView.MaximumHeight)] = MapMaximumHeight,
+            [nameof(IView.Margin)] = MapMargin,
             [nameof(IView.IsEnabled)] = MapIsEnabled,
             [nameof(IView.Opacity)] = MapOpacity,
             [nameof(IView.Visibility)] = MapVisibility,
@@ -49,7 +51,10 @@ public static class OouiViewMapper
     }
 
     public static void MapBackground(IViewHandler handler, IView view) =>
-        Element(handler).Style.BackgroundColor = view.Background is SolidPaint solidPaint ? OouiStyle.ToCss(solidPaint.Color) : null;
+        OouiStyle.SetBackground(Element(handler).Style, ((Microsoft.Maui.Controls.VisualElement)view).Background);
+
+    public static void MapShadow(IViewHandler handler, IView view) =>
+        OouiStyle.SetShadow(Element(handler).Style, view.Shadow);
 
     public static void MapWidth(IViewHandler handler, IView view) => OouiStyle.SetDimension(Element(handler).Style, "width", view.Width);
     public static void MapHeight(IViewHandler handler, IView view) => OouiStyle.SetDimension(Element(handler).Style, "height", view.Height);
@@ -57,6 +62,9 @@ public static class OouiViewMapper
     public static void MapMinimumHeight(IViewHandler handler, IView view) => OouiStyle.SetDimension(Element(handler).Style, "min-height", view.MinimumHeight);
     public static void MapMaximumWidth(IViewHandler handler, IView view) => OouiStyle.SetDimension(Element(handler).Style, "max-width", view.MaximumWidth);
     public static void MapMaximumHeight(IViewHandler handler, IView view) => OouiStyle.SetDimension(Element(handler).Style, "max-height", view.MaximumHeight);
+
+    public static void MapMargin(IViewHandler handler, IView view) =>
+        OouiStyle.SetThickness(Element(handler).Style, view.Margin, padding: false);
 
     public static void MapIsEnabled(IViewHandler handler, IView view)
     {

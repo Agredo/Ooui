@@ -4,6 +4,9 @@ namespace Ooui.Maui;
 
 public static class HandlerExtensions
 {
+    /// <summary>Base URI used to resolve relative image sources in a plain WebAssembly host.</summary>
+    public static string? DocumentBaseUri { get; set; }
+
     public static Element ToOouiElement(this IView view, IMauiContext context)
     {
         ArgumentNullException.ThrowIfNull(view);

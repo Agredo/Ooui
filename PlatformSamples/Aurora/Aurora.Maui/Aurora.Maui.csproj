@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net11.0</TargetFramework>
+    <MauiXamlInflator>Runtime</MauiXamlInflator>
+    <SkipValidateMauiImplicitPackageReferences>true</SkipValidateMauiImplicitPackageReferences>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Aurora.Maui</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Maui.Controls" Version="11.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Aurora.Models\Aurora.Models.csproj" />
+    <ProjectReference Include="..\Aurora.Services\Aurora.Services.csproj" />
+    <ProjectReference Include="..\Aurora.ViewModels\Aurora.ViewModels.csproj" />
+  </ItemGroup>
+</Project>

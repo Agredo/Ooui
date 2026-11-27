@@ -15,9 +15,18 @@
     <VerticalStackLayout Spacing="20">
 
         <Border AutomationId="hero"
-                BackgroundColor="{StaticResource Hero}"
                 StrokeThickness="0"
                 Padding="34">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="#1b2a55" Offset="0" />
+                    <GradientStop Color="{StaticResource Hero}" Offset="0.55" />
+                    <GradientStop Color="#3b2a6e" Offset="1" />
+                </LinearGradientBrush>
+            </Border.Background>
+            <Border.Shadow>
+                <Shadow Brush="#0b1020" Opacity="0.35" Radius="28" Offset="0,14" />
+            </Border.Shadow>
             <Border.StrokeShape>
                 <RoundRectangle CornerRadius="24" />
             </Border.StrokeShape>
@@ -42,6 +51,9 @@
             <Border.StrokeShape>
                 <RoundRectangle CornerRadius="18" />
             </Border.StrokeShape>
+            <Border.Shadow>
+                <Shadow Brush="#1b2a55" Opacity="0.12" Radius="18" Offset="0,8" />
+            </Border.Shadow>
             <VerticalStackLayout Spacing="12">
                 <Label Style="{StaticResource CardHeading}" Text="Server-rendered MAUI" />
                 <Label Style="{StaticResource Small}"

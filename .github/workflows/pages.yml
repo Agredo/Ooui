@@ -54,6 +54,11 @@ jobs:
           dotnet publish PlatformSamples/BrowserWasmMaui/BrowserWasmMaui.csproj
           -c Release -p:MSBuildEnableWorkloadResolver=false -o site/browser-wasm-maui
 
+      - name: Publish Aurora as WebAssembly
+        run: >
+          dotnet publish PlatformSamples/Aurora/Aurora.Ooui.Wasm/Aurora.Ooui.Wasm.csproj
+          -c Release -p:MSBuildEnableWorkloadResolver=false -o site/aurora
+
       - name: Publish Ooui without MAUI as WebAssembly
         run: >
           dotnet publish PlatformSamples/BrowserWasm/BrowserWasm.csproj

@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+                    x:Class="Aurora.Maui.Resources.AuroraStyles">
+  <Color x:Key="Forest">#173F35</Color>
+  <Color x:Key="DeepForest">#0E2D27</Color>
+  <Color x:Key="Sage">#C5D9C8</Color>
+  <Color x:Key="Cream">#F7F5EF</Color>
+  <Color x:Key="Paper">#FFFEFA</Color>
+  <Color x:Key="Ink">#19382F</Color>
+  <Color x:Key="Muted">#718077</Color>
+  <Color x:Key="Line">#E4E8DF</Color>
+  <Color x:Key="Clay">#B85C38</Color>
+  <Color x:Key="Peach">#F4E4D8</Color>
+
+  <Shadow x:Key="CardShadow" Brush="#173F35" Opacity="0.12" Radius="22" Offset="0,8" />
+  <Shadow x:Key="FloatingShadow" Brush="#173F35" Opacity="0.2" Radius="32" Offset="0,12" />
+
+  <Style x:Key="Page" TargetType="ContentPage">
+    <Setter Property="BackgroundColor" Value="{StaticResource Cream}" />
+  </Style>
+  <Style x:Key="Brand" TargetType="Label">
+    <Setter Property="TextColor" Value="{StaticResource Forest}" />
+    <Setter Property="FontFamily" Value="Georgia" />
+    <Setter Property="FontSize" Value="30" />
+    <Setter Property="FontAttributes" Value="Bold" />
+  </Style>
+  <Style x:Key="Eyebrow" TargetType="Label">
+    <Setter Property="TextColor" Value="{StaticResource Clay}" />
+    <Setter Property="FontSize" Value="11" />
+    <Setter Property="FontAttributes" Value="Bold" />
+    <Setter Property="CharacterSpacing" Value="2.2" />
+  </Style>
+  <Style x:Key="Title" TargetType="Label">
+    <Setter Property="TextColor" Value="{StaticResource Ink}" />
+    <Setter Property="FontFamily" Value="Georgia" />
+    <Setter Property="FontSize" Value="34" />
+    <Setter Property="LineHeight" Value="1.12" />
+  </Style>
+  <Style x:Key="HeroTitle" TargetType="Label">
+    <Setter Property="TextColor" Value="White" />
+    <Setter Property="FontFamily" Value="Georgia" />
+    <Setter Property="FontSize" Value="48" />
+    <Setter Property="LineHeight" Value="1.05" />
+  </Style>
+  <Style x:Key="Body" TargetType="Label">
+    <Setter Property="TextColor" Value="{StaticResource Muted}" />
+    <Setter Property="FontSize" Value="14" />
+    <Setter Property="LineHeight" Value="1.55" />
+  </Style>
+  <Style x:Key="Small" TargetType="Label">
+    <Setter Property="TextColor" Value="{StaticResource Muted}" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="LineHeight" Value="1.4" />
+  </Style>
+  <Style x:Key="Card" TargetType="Border">
+    <Setter Property="BackgroundColor" Value="{StaticResource Paper}" />
+    <Setter Property="Stroke" Value="{StaticResource Line}" />
+    <Setter Property="StrokeThickness" Value="1" />
+    <Setter Property="Shadow" Value="{StaticResource CardShadow}" />
+    <Setter Property="StrokeShape">
+      <Setter.Value><RoundRectangle CornerRadius="22" /></Setter.Value>
+    </Setter>
+  </Style>
+  <Style x:Key="PrimaryButton" TargetType="Button">
+    <Setter Property="BackgroundColor" Value="{StaticResource Forest}" />
+    <Setter Property="TextColor" Value="White" />
+    <Setter Property="CornerRadius" Value="24" />
+    <Setter Property="FontSize" Value="13" />
+    <Setter Property="FontAttributes" Value="Bold" />
+    <Setter Property="HeightRequest" Value="48" />
+    <Setter Property="Padding" Value="22,0" />
+    <Setter Property="HorizontalOptions" Value="Start" />
+  </Style>
+  <Style x:Key="LightButton" TargetType="Button">
+    <Setter Property="BackgroundColor" Value="{StaticResource Cream}" />
+    <Setter Property="TextColor" Value="{StaticResource Forest}" />
+    <Setter Property="BorderColor" Value="{StaticResource Line}" />
+    <Setter Property="BorderWidth" Value="1" />
+    <Setter Property="CornerRadius" Value="22" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="HeightRequest" Value="44" />
+    <Setter Property="Padding" Value="18,0" />
+    <Setter Property="HorizontalOptions" Value="Start" />
+  </Style>
+  <Style x:Key="IconButton" TargetType="Button">
+    <Setter Property="BackgroundColor" Value="{StaticResource Paper}" />
+    <Setter Property="TextColor" Value="{StaticResource Forest}" />
+    <Setter Property="CornerRadius" Value="19" />
+    <Setter Property="FontSize" Value="19" />
+    <Setter Property="WidthRequest" Value="38" />
+    <Setter Property="HeightRequest" Value="38" />
+    <Setter Property="Padding" Value="0" />
+  </Style>
+</ResourceDictionary>

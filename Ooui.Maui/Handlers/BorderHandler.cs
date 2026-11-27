@@ -28,12 +28,13 @@ public class BorderHandler : ContentViewHandler, IBorderHandler
         var border = (IBorderView)content;
         handler.PlatformView.Style.BorderWidth = border.StrokeThickness;
         handler.PlatformView.Style.BorderStyle = border.StrokeThickness > 0 ? "solid" : null;
-        handler.PlatformView.Style.BorderColor = border.Stroke is SolidPaint paint ? OouiStyle.ToCss(paint.Color) : null;
+        handler.PlatformView.Style.BorderColor = OouiStyle.ToCss(border.Stroke);
         handler.PlatformView.Style.BorderRadius = border.Shape switch
         {
             Microsoft.Maui.Controls.Shapes.RoundRectangle rounded => FormattableString.Invariant($"{rounded.CornerRadius.TopLeft}px {rounded.CornerRadius.TopRight}px {rounded.CornerRadius.BottomRight}px {rounded.CornerRadius.BottomLeft}px"),
             Microsoft.Maui.Controls.Shapes.Rectangle rectangle => FormattableString.Invariant($"{rectangle.RadiusX}px {rectangle.RadiusY}px"),
             _ => null,
         };
+        handler.PlatformView.Style.Overflow = border.Shape is Microsoft.Maui.Controls.Shapes.RoundRectangle or Microsoft.Maui.Controls.Shapes.Rectangle ? "hidden" : null;
     }
 }

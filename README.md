@@ -10,6 +10,7 @@
 | `Ooui.Maui` (experimental, source only) | [Ooui.Maui](Ooui.Maui/Ooui.Maui.csproj) | Experimental .NET MAUI 11 browser backend |
 | `BrowserWasm` (sample, source only) | [BrowserWasm](PlatformSamples/BrowserWasm/BrowserWasm.csproj) | Runs Ooui completely in the browser on `browser-wasm` (replaces the retired `Ooui.Wasm`) |
 | `BrowserWasmMaui` (sample, source only) | [BrowserWasmMaui](PlatformSamples/BrowserWasmMaui/BrowserWasmMaui.csproj) | Runs `Ooui.Maui` – a real MAUI 11 app – inside the browser on `browser-wasm` |
+| `Aurora` (sample, source only) | [Aurora.Ooui.Wasm](PlatformSamples/Aurora/Aurora.Ooui.Wasm/Aurora.Ooui.Wasm.csproj) | The design showcase: an editorial travel journal split into Models, Services, ViewModels and MAUI, hosted on `browser-wasm` |
 | `AspNetCoreMauiWasm` (sample, source only) | [AspNetCoreMauiWasm](PlatformSamples/AspNetCoreMauiWasm/AspNetCoreMauiWasm.csproj) | Serves one MAUI page twice: rendered by Kestrel at `/` and as a WebAssembly bundle at `/wasm` |
 
 Ooui (pronounced *weee!*) is a small cross-platform UI library for .NET that uses web technologies.
@@ -114,8 +115,12 @@ Each WebSocket connection creates its own window and view hierarchy. Closing the
 | Forms | `Entry`, `Editor`, `CheckBox`, `RadioButton`, `Switch`, `Slider`, `Stepper`, `Picker`, `DatePicker`, `TimePicker`, `SearchBar` |
 | Display and feedback | `Label`, `Button`, `ImageButton`, `Image`, `ProgressBar`, `ActivityIndicator`, focus requests |
 | Collections | `CollectionView` with `ItemsSource` (including `INotifyCollectionChanged`), `ItemTemplate`, `EmptyView`/`EmptyViewTemplate`, header and footer, grouping (`IsGrouped` with group header and footer templates), single/multiple selection, vertical/horizontal/grid `ItemsLayout` with `ItemSpacing`, scroll events and `ScrollTo`; `RefreshView` with a browser refresh bar; deprecated `ListView` with `ViewCell`/`TextCell`, `ItemTapped`, selection and separators |
+| Brushes and shadows | `Background` accepts any MAUI brush: a solid paint becomes `background-color`, `LinearGradientBrush` and `RadialGradientBrush` become CSS gradients with their stops, offsets, direction and center (also on `BoxView.Fill`), and `Shadow` becomes `box-shadow` with the brush color, `Opacity`, `Radius` and `Offset` |
+| Layout and alignment | `Margin` writes `margin-*`; `HorizontalOptions`/`VerticalOptions` write `justify-self`/`align-self` in a `Grid` and `align-self` in a stack, where the stack's own orientation decides which of the two applies |
 
-Common text, font, color, sizing, padding, transformation, interaction, and enabled/visibility properties are mapped by the browser handlers. Browser edits update MAUI properties and bindings, while server-side changes update live DOM form values.
+An overlay only stays an overlay when its children name the same cell: `Grid.Row="0" Grid.Column="0"` on the image, the scrim and the caption. Without an explicit position `GridHandler` places them automatically, one per row — that is how a two-line hero turned into a three-row column before Aurora was fixed.
+
+Common text, font, color, sizing, padding, margin, alignment, transformation, interaction, and enabled/visibility properties are mapped by the browser handlers. Browser edits update MAUI properties and bindings, while server-side changes update live DOM form values.
 
 Form controls also carry the browser affordances that MAUI exposes: `Keyboard` selects the input type and `inputmode` (numeric keyboards get `inputmode="decimal"` and stay `type="text"`, so no spinner or rejected text), `IsSpellCheckEnabled` writes `spellcheck`, `MaxLength` writes `maxlength` (cleared for MAUI's unlimited default), and `ReturnType` writes `enterkeyhint` and raises `Completed` on Enter. A `DatePicker` or `TimePicker` with a custom `Format` keeps the native input — it stays responsible for the picker, the value and the browser form submission — but hides it under the formatted text, so `Format="dd.MM.yyyy"` or `Format="HH:mm"` shows through. Visual states work as well: a `VisualStateManager` group named `Valid`/`Invalid` (as used by the `CommunityToolkit.Maui` validation behaviors in the sample) repaints the mapped colors.
 
@@ -123,7 +128,7 @@ A `NavigationPage` keeps the browser history in sync with its server-side naviga
 
 ### Limitations
 
-This remains an experimental browser backend, **not a complete MAUI web platform**. `Shell` and accessibility/localization infrastructure are not implemented. Navigation renders a single `NavigationPage` or `TabbedPage` per window: the browser hash mirrors the navigation stack, but it is not a deep-link source, so bookmarks and reloads always start at the root page, and tab bars show page titles only (no icons). Layout uses browser CSS rather than complete MAUI text measurement and native layout semantics. `CollectionView` renders every item at once (no virtualization); `CarouselView`, `IndicatorView`, drag-and-drop reordering and swipe actions are not supported. `RefreshView` draws its own refresh button instead of a pull gesture, and a change inside a group re-renders the whole grouped list. `Image` currently supports URL and file-name sources, a custom `DatePicker`/`TimePicker` `Format` changes only the resting text (the open browser picker still follows the browser locale), and `Stepper` is represented by a number input. The built-in server hosts application logic and per-session state on the server; it is not a client-side MAUI runtime. Production deployment, authentication, reconnect behavior, and scale-out require additional application design and validation.
+This remains an experimental browser backend, **not a complete MAUI web platform**. `Shell` and accessibility/localization infrastructure are not implemented. Navigation renders a single `NavigationPage` or `TabbedPage` per window: the browser hash mirrors the navigation stack, but it is not a deep-link source, so bookmarks and reloads always start at the root page, and tab bars show page titles only (no icons). Layout uses browser CSS rather than complete MAUI text measurement and native layout semantics. `CollectionView` renders every item at once (no virtualization); `CarouselView`, `IndicatorView`, drag-and-drop reordering and swipe actions are not supported. `RefreshView` draws its own refresh button instead of a pull gesture, and a change inside a group re-renders the whole grouped list. `Image` currently supports URL and file-name sources, a custom `DatePicker`/`TimePicker` `Format` changes only the resting text (the open browser picker still follows the browser locale), a gradient `Stroke` is reduced to its start color because a CSS border carries one color, and `Stepper` is represented by a number input. The built-in server hosts application logic and per-session state on the server; it is not a client-side MAUI runtime. Production deployment, authentication, reconnect behavior, and scale-out require additional application design and validation.
 
 Run the focused handler and session tests with:
 
@@ -314,6 +319,40 @@ Three details are easy to get wrong when serving a Wasm bundle from Kestrel:
 - Both paths share `UI.HeadHtml`, so the same dark card style applies whether the page came from Kestrel or from the tab.
 
 
+## Aurora &mdash; the design showcase
+
+`PlatformSamples/Aurora` exists to answer a visual question: how good can a MAUI page look when Ooui renders it into the DOM? It is a small editorial travel journal &mdash; six journeys, a search, category filters, a detail page with an itinerary and a traveller count, and a saved-places list &mdash; built the way a real app is built and split the way a real solution is split.
+
+| Project | Contains |
+| --- | --- |
+| `Aurora.Models` | `Destination`, `Experience`, `ItineraryDay`, `TripPlan`, `DestinationFilter` &mdash; records only, no packages |
+| `Aurora.Services` | `IDestinationService`, `IFavoritesService`, `ITripService`, `IAuroraNavigator` and their implementations, plus `AddAuroraServices` |
+| `Aurora.ViewModels` | `ExploreViewModel`, `DestinationDetailViewModel`, `FavoritesViewModel`, `DestinationCardViewModel` &mdash; Community Toolkit MVVM only, no MAUI reference |
+| `Aurora.Maui` | `App`, the three XAML pages, `DestinationCard`, `AuroraStyles`, the `AuroraNavigator` and `AddAuroraApp` |
+| `Aurora.Ooui.Wasm` | the `browser-wasm` host: `index.html`, `main.js`, `aurora.css` and the seven local images |
+| `Aurora.ViewModels.Tests` | MSTest coverage for search, filters, favourites, travellers, the trip planner and navigation |
+
+The design work is deliberately visible in the file names: `AuroraStyles.xaml` holds the palette (forest, sage, cream, terracotta), Georgia for the display type and the card, button and eyebrow styles; `ExplorePage.xaml` is the only place that composes the hero, the discovery row and the two-column destination grid. Nothing in `Aurora.ViewModels` knows that a browser exists &mdash; navigation leaves through `IAuroraNavigator`, which the MAUI project implements on top of `NavigationPageHandler`.
+
+```bash
+# any static server works, the bundle talks to nobody
+dotnet publish PlatformSamples/Aurora/Aurora.Ooui.Wasm/Aurora.Ooui.Wasm.csproj -c Release
+cd PlatformSamples/Aurora/Aurora.Ooui.Wasm/bin/Release/net11.0/browser-wasm/publish
+python -m http.server 8083      # http://localhost:8083/
+
+# or run the view model tests
+dotnet test PlatformSamples/Aurora/Aurora.ViewModels.Tests/Aurora.ViewModels.Tests.csproj
+```
+
+Four things are worth knowing if you build something similar:
+
+- **Runtime XAML on purpose.** `Aurora.Maui` sets `MauiXamlInflator=Runtime` (and logs it as `MAUI1001`). Source-generated XAML failed on the cross-project `x:DataType` bindings and on the partial `InitializeComponent` signatures, and the runtime path is what the rest of these samples use.
+- **A card template must be typified.** A `DataTemplate` that names a custom `ContentView` is inflated *after* the page, so a plain `<views:DestinationCard />` template produced an empty page. `AuroraPage` registers `new DataTemplate (static () => new DestinationCard ())` as a resource instead, and `DestinationCard` carries its own `AuroraStyles` dictionary because a `ContentView` is parsed before it is attached to a page.
+- **Images need a base URI.** `ImageSource.FromUri` requires an absolute URI, so `RelativeImageSource` combines the model's relative path with `document.baseURI`, read once through the `auroraHost` JavaScript bridge. That is what makes the same bundle work at `/` and under the Pages subpath `/Ooui/aurora/`.
+- **`aurora.css` fills the gaps the inline styles cannot.** The renderer writes grid columns inline, so the `max-width: 700px` block re-declares the hero, detail and card grids as `minmax(0, 1fr)`, hides the header's "Explore ↗" button and stacks the planner below the story. The `minmax(0, …)` matters: a plain `1fr` track refuses to shrink below its content and would push the page wider than a phone.
+
+The photographs in `Aurora.Ooui.Wasm/wwwroot/images` are locally optimised WebP demo assets for the layout. They are not credited to a stock library, so replace them with your own licensed photography before reusing the design.
+
 ## One MAUI app, three backends
 
 `PlatformSamples/SampleApp` is the answer to a stricter question than the samples above: take an ordinary MAUI app — the app template's counter page plus a second page — split it the way a real MAUI solution is split, and then host *that* app on three different web backends without touching it.
@@ -365,6 +404,7 @@ Verified in Chromium with Playwright on every path: the counter increments, `Det
 
 | Path | Sample |
 | --- | --- |
+| `/aurora/` | `Aurora.Ooui.Wasm` — the Aurora design showcase |
 | `/ooui-maui/` | `Sample.Ooui.Wasm` — the four-project MAUI app |
 | `/browser-wasm-maui/` | `BrowserWasmMaui` — the MAUI demo page |
 | `/browser-wasm/` | `BrowserWasm` — Ooui without MAUI |
@@ -379,6 +419,7 @@ To turn it on, enable Pages once in the repository settings (Settings → Pages 
 dotnet publish PlatformSamples/SampleApp/Sample.Ooui.Wasm/Sample.Ooui.Wasm.csproj -c Release -o site/ooui-maui
 dotnet publish PlatformSamples/BrowserWasmMaui/BrowserWasmMaui.csproj -c Release -o site/browser-wasm-maui
 dotnet publish PlatformSamples/BrowserWasm/BrowserWasm.csproj -c Release -o site/browser-wasm
+dotnet publish PlatformSamples/Aurora/Aurora.Ooui.Wasm/Aurora.Ooui.Wasm.csproj -c Release -o site/aurora
 cp .github/pages/index.html site/index.html && touch site/.nojekyll
 python -m http.server 8104 --directory site
 ```

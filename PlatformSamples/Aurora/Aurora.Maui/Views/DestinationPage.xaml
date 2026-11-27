@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:views="clr-namespace=Aurora.Maui.Views;assembly=Aurora.Maui"
+             xmlns:maui="clr-namespace=Aurora.Maui"
+             xmlns:vm="clr-namespace=Aurora.ViewModels;assembly=Aurora.ViewModels"
+             xmlns:models="clr-namespace=Aurora.Models;assembly=Aurora.Models"
+             x:Class="Aurora.Maui.Views.DestinationPage"
+             x:DataType="vm:DestinationDetailViewModel"
+             Style="{StaticResource Page}"
+             Title="Your next chapter — Aurora">
+  <ScrollView AutomationId="detail-scroll">
+    <VerticalStackLayout Spacing="28" Padding="0,26,0,48">
+      <Grid ColumnDefinitions="*,Auto">
+        <HorizontalStackLayout Spacing="10">
+          <Button Text="←" Style="{StaticResource IconButton}" BackgroundColor="Transparent" Command="{Binding BackCommand}" AutomationId="back-explore" />
+          <Label Text="aurora" Style="{StaticResource Brand}" VerticalOptions="Center" />
+        </HorizontalStackLayout>
+        <Button Grid.Column="1" Text="{Binding FavoriteButtonText}" Style="{StaticResource LightButton}" Command="{Binding ToggleFavoriteCommand}" AutomationId="detail-favorite" />
+      </Grid>
+
+      <Border Style="{StaticResource Card}" Padding="0" BackgroundColor="{StaticResource DeepForest}" StrokeThickness="0" AutomationId="detail-hero">
+        <Grid HeightRequest="380" IsClippedToBounds="True" AutomationId="detail-hero-media">
+          <Image Grid.Row="0" Grid.Column="0" Source="{Binding ImageUrl, Converter={StaticResource RelativeImageSource}}" Aspect="AspectFill" HeightRequest="380" />
+          <BoxView Grid.Row="0" Grid.Column="0" HeightRequest="380">
+            <BoxView.Background>
+              <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                <GradientStop Color="#100E2D27" Offset="0.3" />
+                <GradientStop Color="#E00E2D27" Offset="1" />
+              </LinearGradientBrush>
+            </BoxView.Background>
+          </BoxView>
+          <VerticalStackLayout Grid.Row="0" Grid.Column="0" Padding="32" Spacing="12" VerticalOptions="End">
+            <Label Text="{Binding Destination.Eyebrow}" TextColor="{StaticResource Sage}" Style="{StaticResource Eyebrow}" />
+            <Label Text="{Binding Destination.Name}" Style="{StaticResource HeroTitle}" AutomationId="destination-title" />
+            <Label Text="{Binding Destination.Country}" TextColor="White" FontSize="16" />
+          </VerticalStackLayout>
+        </Grid>
+      </Border>
+
+      <Grid ColumnDefinitions="*,Auto" ColumnSpacing="26" AutomationId="detail-story">
+        <VerticalStackLayout Spacing="15">
+          <Label Text="A DIFFERENT KIND OF EVERYDAY" Style="{StaticResource Eyebrow}" />
+          <Label Text="{Binding Destination.Description}" FontFamily="Georgia" FontSize="27" TextColor="{StaticResource Forest}" LineHeight="1.25" />
+          <Label Text="{Binding Destination.Story}" Style="{StaticResource Body}" FontSize="15" />
+        </VerticalStackLayout>
+        <Border Grid.Column="1" Style="{StaticResource Card}" Padding="24" WidthRequest="280" AutomationId="planner">
+          <VerticalStackLayout Spacing="13">
+            <Label Text="MAKE IT YOURS" Style="{StaticResource Eyebrow}" />
+            <Label Text="Your next chapter" FontFamily="Georgia" FontSize="26" TextColor="{StaticResource Forest}" />
+            <Label Text="{Binding TripLabel}" Style="{StaticResource Small}" />
+            <Label Text="{Binding Rating, StringFormat='{0}  loved by our travellers'}" FontSize="12" TextColor="{StaticResource Clay}" />
+            <BoxView HeightRequest="1" BackgroundColor="{StaticResource Line}" />
+            <HorizontalStackLayout Spacing="12">
+              <Label Text="Travellers" Style="{StaticResource Body}" VerticalOptions="Center" />
+              <Stepper Minimum="1" Maximum="8" Value="{Binding Travelers}" AutomationId="traveler-stepper" />
+            </HorizontalStackLayout>
+            <Label Text="{Binding TravelerSummary}" Style="{StaticResource Small}" />
+            <Label Text="{Binding TotalPrice}" FontFamily="Georgia" FontSize="30" TextColor="{StaticResource Forest}" AutomationId="total-price" />
+            <Label Text="Indicative price, including stays &amp; experiences" Style="{StaticResource Small}" />
+            <Button Text="{Binding PlannerButtonText}" Style="{StaticResource PrimaryButton}" Command="{Binding ToggleSavedCommand}" AutomationId="plan-trip" />
+            <Label Text="No checkout. Just a little inspiration." Style="{StaticResource Small}" FontSize="11" />
+          </VerticalStackLayout>
+        </Border>
+      </Grid>
+
+      <VerticalStackLayout Spacing="18">
+        <Label Text="THE LITTLE THINGS, PLANNED" Style="{StaticResource Eyebrow}" />
+        <Label Text="Days with something to remember." Style="{StaticResource Title}" FontSize="29" />
+        <CollectionView ItemsSource="{Binding Destination.Experiences}" SelectionMode="None" HeightRequest="175" AutomationId="experience-list">
+          <CollectionView.ItemsLayout><GridItemsLayout Orientation="Vertical" Span="3" HorizontalItemSpacing="18" /></CollectionView.ItemsLayout>
+          <CollectionView.ItemTemplate>
+            <DataTemplate x:DataType="models:Experience">
+              <Border Style="{StaticResource Card}" Padding="20" Shadow="{x:Null}">
+                <VerticalStackLayout Spacing="8">
+                  <Label Text="{Binding Icon}" FontSize="30" TextColor="{StaticResource Clay}" />
+                  <Label Text="{Binding Name}" FontFamily="Georgia" FontSize="19" TextColor="{StaticResource Forest}" />
+                  <Label Text="{Binding Detail}" Style="{StaticResource Small}" />
+                </VerticalStackLayout>
+              </Border>
+            </DataTemplate>
+          </CollectionView.ItemTemplate>
+        </CollectionView>
+      </VerticalStackLayout>
+
+      <VerticalStackLayout Spacing="18">
+        <Label Text="A SLOWER WAY TO SEE IT" Style="{StaticResource Eyebrow}" />
+        <Label Text="Your journey, at a glance." Style="{StaticResource Title}" FontSize="29" />
+        <CollectionView ItemsSource="{Binding Journey}" SelectionMode="None" AutomationId="itinerary-list">
+          <CollectionView.ItemsLayout><LinearItemsLayout Orientation="Vertical" ItemSpacing="12" /></CollectionView.ItemsLayout>
+          <CollectionView.ItemTemplate>
+            <DataTemplate x:DataType="vm:JourneyStepViewModel">
+              <Border BackgroundColor="Transparent" StrokeThickness="0" Padding="18,12">
+                <Grid ColumnDefinitions="54,*,Auto" ColumnSpacing="16">
+                  <Label Text="{Binding Number}" FontFamily="Georgia" FontSize="29" TextColor="{StaticResource Clay}" />
+                  <VerticalStackLayout Grid.Column="1" Spacing="4">
+                    <Label Text="{Binding Day.Title}" FontFamily="Georgia" FontSize="21" TextColor="{StaticResource Forest}" />
+                    <Label Text="{Binding Day.Detail}" Style="{StaticResource Body}" />
+                  </VerticalStackLayout>
+                  <Label Grid.Column="2" Text="↗" FontSize="22" TextColor="{StaticResource Clay}" />
+                </Grid>
+              </Border>
+            </DataTemplate>
+          </CollectionView.ItemTemplate>
+        </CollectionView>
+      </VerticalStackLayout>
+
+      <Border BackgroundColor="{StaticResource Forest}" Padding="30" StrokeThickness="0">
+        <Border.StrokeShape><RoundRectangle CornerRadius="24" /></Border.StrokeShape>
+        <VerticalStackLayout Spacing="12">
+          <Label Text="NOT QUITE YOUR KIND OF AWAY?" TextColor="{StaticResource Sage}" Style="{StaticResource Eyebrow}" />
+          <Label Text="There's a whole world out there." TextColor="White" FontFamily="Georgia" FontSize="28" />
+          <Button Text="Keep wandering  ↗" BackgroundColor="{StaticResource Cream}" TextColor="{StaticResource Forest}" Style="{StaticResource PrimaryButton}" Command="{Binding ExploreCommand}" />
+        </VerticalStackLayout>
+      </Border>
+    </VerticalStackLayout>
+  </ScrollView>
+</ContentPage>

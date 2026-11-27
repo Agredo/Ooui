@@ -33,5 +33,5 @@ public class BoxViewHandler : OouiViewHandler<IShapeView, Div>, IShapeViewHandle
     }
 
     public static void MapFill(BoxViewHandler handler, IShapeView view) =>
-        handler.PlatformView.Style.BackgroundColor = view.Fill is Microsoft.Maui.Graphics.SolidPaint paint ? OouiStyle.ToCss(paint.Color) : null;
+        OouiStyle.SetBackground(handler.PlatformView.Style, view.Fill);
 }
